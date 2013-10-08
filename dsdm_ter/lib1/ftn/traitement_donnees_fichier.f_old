@@ -1,0 +1,2139 @@
+      SUBROUTINE LFIDON
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+      include 'cominc_visu.h'
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C 
+      INTEGER  U, V, I, J, K, COMPT, NBORLU, ABORD, NUMDIR, IUNIT
+      INTEGER  DEVREE, DEVIMA, DEVDRE, DEVDIM
+      INTEGER  AURREE, AVRREE, ADTETA, ADHAU , ADCOTE
+      INTEGER  DEVFU, DEVFV, DEVFW, DEVFRR, DEVFR0
+      INTEGER  W, RR, R0
+      INTEGER  LGCARG, LNOMFI
+C 
+      DOUBLE PRECISION DHAUT
+      DOUBLE PRECISION UX, UY, RX, RY
+      DOUBLE PRECISION C, S
+C 
+      CHARACTER*9   NOMDIR
+      CHARACTER*6   IDPROG
+      CHARACTER*20  NOMFIC
+      CHARACTER*120 NOM
+C 
+      INTEGER  AM2LC, ADM2LC
+C 
+      PARAMETER (IDPROG='LFIDON')
+C 
+C     include 'identi.h'
+C 
+C -----------------------------------------------------------------------
+      CHARACTER*6      CPLAST(6) , IPLAST(2), CRITER(2)
+      CHARACTER*3      CENDOM(3) , ENDOMI(3)
+      CHARACTER*10     ENDDIF(3)
+      CHARACTER*9      BORD(4)
+      CHARACTER*3      CONTRA(6), DEFORM(6)
+      CHARACTER*4      DCONTR(6)
+      CHARACTER*4      DDEFOR(6)
+      CHARACTER*1      DEPLA(3)
+C 
+      BORD(1)    = 'inferieur'
+      BORD(2)    = 'interieur'
+      BORD(3)    = 'superieur'
+      BORD(4)    = 'exterieur'
+C 
+      DEPLA(1)   = 'u'
+      DEPLA(2)   = 'v'
+      DEPLA(3)   = 'w'
+C 
+      IF (VISORT) THEN
+C 
+         CONTRA(1)  = 'C11'
+         CONTRA(2)  = 'C22'
+         CONTRA(3)  = 'C12'
+         CONTRA(4)  = 'C23'
+         CONTRA(5)  = 'C13'
+         CONTRA(6)  = 'C33'
+C 
+         DEFORM(1)  = 'E11'
+         DEFORM(2)  = 'E22'
+         DEFORM(3)  = 'E12'
+         DEFORM(4)  = 'E23'
+         DEFORM(5)  = 'E13'
+         DEFORM(6)  = 'E33'
+C 
+         DCONTR(1)  = 'DC11'
+         DCONTR(2)  = 'DC22'
+         DCONTR(3)  = 'DC12'
+         DCONTR(4)  = 'DC23'
+         DCONTR(5)  = 'DC13'
+         DCONTR(6)  = 'DC33'
+C 
+         DDEFOR(1)  = 'DE11'
+         DDEFOR(2)  = 'DE22'
+         DDEFOR(3)  = 'DE12'
+         DDEFOR(4)  = 'DE23'
+         DDEFOR(5)  = 'DE13'
+         DDEFOR(6)  = 'DE33'
+C 
+      ELSE IF (VISUXY) THEN
+C 
+         CONTRA(1)  = 'Cxx'
+         CONTRA(2)  = 'Cyy'
+         CONTRA(3)  = 'Cxy'
+         CONTRA(4)  = 'Cyz'
+         CONTRA(5)  = 'Cxz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Exx'
+         DEFORM(2)  = 'Eyy'
+         DEFORM(3)  = 'Exy'
+         DEFORM(4)  = 'Eyz'
+         DEFORM(5)  = 'Exz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCxx'
+         DCONTR(2)  = 'DCyy'
+         DCONTR(3)  = 'DCxy'
+         DCONTR(4)  = 'DCyz'
+         DCONTR(5)  = 'DCxz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DExx'
+         DDEFOR(2)  = 'DEyy'
+         DDEFOR(3)  = 'DExy'
+         DDEFOR(4)  = 'DEyz'
+         DDEFOR(5)  = 'DExz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ELSE
+C 
+         CONTRA(1)  = 'Crr'
+         CONTRA(2)  = 'C00'
+         CONTRA(3)  = 'Cr0'
+         CONTRA(4)  = 'C0z'
+         CONTRA(5)  = 'Crz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Err'
+         DEFORM(2)  = 'E00'
+         DEFORM(3)  = 'Er0'
+         DEFORM(4)  = 'E0z'
+         DEFORM(5)  = 'Erz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCrr'
+         DCONTR(2)  = 'DC00'
+         DCONTR(3)  = 'DCr0'
+         DCONTR(4)  = 'DC0z'
+         DCONTR(5)  = 'DCrz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DErr'
+         DDEFOR(2)  = 'DE00'
+         DDEFOR(3)  = 'DEr0'
+         DDEFOR(4)  = 'DE0z'
+         DDEFOR(5)  = 'DErz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ENDIF
+C 
+      CPLAST(1)  = 'epsp11' 
+      CPLAST(2)  = 'epsp22' 
+      CPLAST(3)  = 'epsp12' 
+      CPLAST(4)  = 'epsp23' 
+      CPLAST(5)  = 'epsp13' 
+      CPLAST(6)  = 'epsp33' 
+C 
+      CENDOM(1)   = 'dfi'
+      CENDOM(2)   = 'dps' 
+      CENDOM(3)   = 'dpt'
+C 
+      IPLAST(1)  = 'SAUTP1' 
+      IPLAST(2)  = 'SAUTP2' 
+C 
+      ENDOMI(1)   = 'di1' 
+      ENDOMI(2)   = 'di2'
+      ENDOMI(3)   = 'di3'
+C 
+      ENDDIF(1)   = 'di1-di1ini'
+      ENDDIF(1)   = 'di2-di2ini'
+      ENDDIF(1)   = 'di3-di3ini'
+c -
+      CRITER(1)  = 'CRIT-S'
+      CRITER(2)  = 'CRIT-N'
+C
+CD    CALL WLKBCD(IDPROG)
+C 
+      CALL ENPOUB (AM2LC, ADM2LC)
+C -----------------------------------------------------------------------      
+      CALL ADTBDM ('ANGLES-GEO', ADTETA)
+C 
+C     Le tableau HAU-CE-TOT contient les distances au centre
+C     de tous les plans en partant du plan inferieur du stratifie
+C 
+      CALL ADTBDM ('HAU-CE-TOT', ADHAU)
+C 
+      CALL GESTDP ('HAUT-NOEUD', 3*NBCOU, ADCOTE)
+C 
+C     On remplit le tableau des hauteurs des noeuds
+C 
+      K = 0
+      DO I = 1, NBCOU
+        DHAUT = DABS((DM(ADHAU+I)-DM(ADHAU+I-1)) /2.D0)
+        DM(ADCOTE+K) = DM(ADHAU+I-1)
+        K = K+1
+        DO J = 1, 2
+          DM(ADCOTE+K) = DHAUT + DM(ADCOTE+K-1)
+          K = K+1
+        END DO
+      END DO
+C 
+C     Entree dans la sequence de lecture des fichiers de donnees
+C -----------------------------------------------------------------------      
+C -----------------------------------------------------------------------      
+C 
+      IF (DONFIC .AND. TRACT .AND. (.NOT. DONVOL)) THEN
+C 
+C     Dans le cas d'une sollicitation de traction sur la plaque
+C     Le champ 3D de déplacements sur les bords chargés est homogène
+C     dans l'épaisseur; on relit seulement U, V et W
+C
+        CALL MESSAO ('FICHIER DE DONNEES DE TYPE TENSION')
+        CALL MESSAO ('LECTURE DES FICHIERS DE DONNEES DANS '//IDPROG)
+C 
+        CALL ADTBM ('TYP-FICHIE',  ABORD )
+        CALL LONGEN('TYP-FICHIE', NBORLU)
+	NBIMP = NBORLU
+C 
+        NUMDIR = 12
+        NOMDIR = 'donneefic'
+C 
+C       Tableau des valeurs reelles de Ur et U0 en fonction des angles
+C
+        CALL GESTDP('U-R-IMP-FI', NTETA , U  )
+        CALL GESTDP('V-R-IMP-FI', NTETA , V  )
+C 
+        DO I = 1 , NBORLU
+          NOMFIC = CHAFIC(12, I)
+          LNOMFI = LGCARG(CHAFIC(12, I),20)
+          CALL MESSAO (
+     &          'POUR LE BORD'//bord(M(ABORD +I-1))//
+     &          '\LE FICHIER DE DONNEES DANS LE REPERTOIRE'//
+     &          '\DONNEEFIC A POUR NOM : '//NOMFIC)
+	  CALL OUVFCD( NUMDIR , NOMFIC  ,LNOMFI , 'F' , NTETA ,IUNIT )
+C 
+          K = (I-1)*NTETA
+          DO J = 0, NTETA-1
+	    READ(IUNIT ,*) DM(U+K+J), DM(V+K+J)
+          END DO
+        END DO
+C 
+C 
+        CALL IMPTDT ('VALEURS DE U LUES '//IDPROG , DM(U) , 1 , NTETA )
+        CALL IMPTDT ('VALEURS DE V LUES '//IDPROG , DM(V) , 1 , NTETA )
+C 
+        IF ( .NOT. POLAR ) THEN
+          CALL MESSAO ('TRANSFORMATION EN COORDONNEES POLAIRES')
+          DO I = 0 , NTETA-1
+            C       = DCOS(DM(ADTETA+I))
+            S       = DSIN(DM(ADTETA+I))
+            UX      = DM(U+I)
+            UY      = DM(V+I)
+            DM(U+I) = C*UX+S*UY
+            DM(V+I) = C*UY-S*UX
+          END DO
+        END IF
+C 
+C -----------------------------------------------------------------------
+C     Traitement des donnees :
+C 
+C     Il faut :  a ) calculer la valeur des deplacements sur tout le bord
+C                b ) developper les deplacements en series de Fourier
+C                c ) modifier les seconds membres en consequence
+C                d ) modifier les diagonales des matrices K0n en consequence
+C 
+C     Realisation du a : calcul de la valeur des deplacements sur tout le bord
+C 
+C     Pour le moment en tension, principe :
+C 
+C         u et v sont identiques sur tout le bord, w depend de la couche
+C         de facon a assurer que la contrainte normale est nulle
+C         ( remarque grad w est nul )
+C                        m
+C          comme pour le moment on n'a pas la valeur de la deformation de tension
+C          on ne peut pas faire mieux qu'imposer w nul sur la ligne moyenne
+C 
+C          Donc on developpe u et v en series de Fourier (w etant nul)
+C 
+C -----------------------------------------------------------------------
+C     Adresses des debuts des tableaux provisoires :
+C -----------------------------------------------------------------------
+C 
+C       Tableau des valeurs developpees en series de Fourier
+C       de Ur et U0 en fonction des angles
+C 
+        CALL GESTDP('U-T-IMP-FI', NBIMP*NBMAT , DEVREE )
+        CALL GESTDP('V-T-IMP-FI', NBIMP*NBMAT , DEVIMA )
+C 
+C       Tableau des valeurs developpees en series de Fourier
+C       des derivees par rapport a teta de Ur et U0 en fonction
+C       des angles, de facon a calculer eventuellement les gradients
+C 
+        CALL GESTDP('U0-T-IM-FI', NBIMP*NBMAT , DEVDRE )
+        CALL GESTDP('V0-T-IM-FI', NBIMP*NBMAT , DEVDIM )
+C 
+	COMPT = 0
+        DO I = 1, NBIMP
+C
+CD        CALL MESSAO('CALCUL DU DEVELOPPEMENT DE U')
+          CALL DEVSFO( NTETA , DM(U+COMPT) , 0 , DM(DEVREE+COMPT) )
+CD        CALL IMPTDT ('VALEURS DE REE(U) '//IDPROG , DM(U+COMPT),
+CD   &                        1 , NTETA )
+CD        CALL IMPTDT ('VALEURS DE DEV(U) '//IDPROG , DM(DEVREE+COMPT),
+CD   &               1 , NTETA )
+C 
+C
+C         Calcul du developpement en series de Fourier des derivees
+C         en teta de u puis de leurs valeurs reelles
+C
+          CALL POUSMD( 2*NTETA ,  AURREE )
+          AVRREE = AURREE+NTETA
+C 
+CD        CALL MESSAO('CALCUL DES VALEURS REELLES DES DERIVEES DE U')
+          CALL DERTET( 0, DM(DEVREE+COMPT), DM(DEVDRE+COMPT) )
+CD        CALL IMPTDT ('VALEURS DE REE(DERU) '//IDPROG , 
+CD   &               DM(DEVDRE+COMPT),1 , NTETA )
+C 
+          CALL VAREFO( NTETA, DM(DEVDRE+COMPT), 0, DM(AURREE+COMPT) )
+CD        CALL IMPTDT ('VALEURS DE DEV(DERU) '//IDPROG , 
+CD   &               DM(AURREE+COMPT),1 , NTETA )
+C 
+CD        CALL MESSAO('CALCUL DU DEVELOPPEMENT DE V')
+          CALL DEVSFO( NTETA, DM(V+COMPT), 1, DM(DEVIMA+COMPT) )
+C 
+C
+C       Calcul du developpement en serieS de Fourier des derivees
+C       en teta de v
+C
+CD        CALL MESSAO ('CALCUL DES VALEURS REELLES DES DERIVEES DE V')
+          CALL DERTET ( 1, DM(DEVIMA+COMPT), DM(DEVDIM+COMPT) )
+          CALL VAREFO ( NTETA, DM(DEVDIM+COMPT), 1 ,DM(AVRREE+COMPT) )
+C 
+	  COMPT=COMPT+NTETA
+C 
+        END DO
+C 
+	CALL TDEFIT
+C 
+C -----------------------------------------------------------------------      
+C -----------------------------------------------------------------------      
+      ELSE IF ( DONFIC .AND. (.NOT. TRACT) .AND. (.NOT. DONVOL)) THEN
+C 
+C     Dans le cas d'une sollicitation de traction-flexion sur la plaque
+C     Le champ 3D de déplacements sur les bords chargés n'est pas homogène
+C     dans l'épaisseur; on reconstruit ce champ à partir de U, V, W et des 
+C     rotations Rx et Ry
+C
+         CALL MESSAO ('FICHIER DE DONNEES DE TYPE FLEXION')
+         CALL MESSAO ('LECTURE DES FICHIERS DE DONNEES DANS '
+     &                //IDPROG )
+C 
+         CALL ADTBM ('TYP-FICHIE', ABORD)
+         CALL LONGEN ('TYP-FICHIE', NBORLU)
+	 NBIMP = NBORLU
+C 
+         NUMDIR = 12
+         NOMDIR = 'donneefic'
+C 
+C        Modification pour le trou habité
+C        On relit des déplacements imposés sur les bords 2 et 4
+C
+C        Tableau des valeurs reelles de Ur, U0 et W, Rer, Re0
+C        rangés bord par bord en fonction des angles
+C 
+         CALL GESTDP ('U-R-IMP-FI', NBORLU*NTETA , U)
+         CALL GESTDP ('V-R-IMP-FI', NBORLU*NTETA , V)
+         CALL GESTDP ('W-R-IMP-FI', NBORLU*NTETA , W)
+         CALL GESTDP ('RRR-IMP-FI', NBORLU*NTETA , RR)
+         CALL GESTDP ('R0R-IMP-FI', NBORLU*NTETA , R0)
+C 
+         DO I = 1 , NBORLU
+           NOMFIC = CHAFIC(12, I)
+           LNOMFI = LGCARG (CHAFIC(12, I), 20)
+           CALL MESSAO (
+     &          'POUR LE BORD '// bord(M(ABORD +I-1))//
+     &          ' LE FICHIER DE DONNEES DANS LE REPERTOIRE '//
+     &          '\donneefic A POUR NOM : '// NOMFIC )
+C 
+           CALL OUVFCD (NUMDIR, NOMFIC, LNOMFI, 'F', NTETA, IUNIT)
+C 
+           K = (I-1)*NTETA
+	   DO J = 0, NTETA-1
+             READ (IUNIT,*) DM(U+K+J), DM(V+K+J), DM(W+K+J),
+     &                      DM(RR+K+J),DM(R0+K+J)
+	   END DO
+         END DO
+C 
+         CALL IMPTDT('VALEUR U   '//IDPROG, DM(U) , 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR V   '//IDPROG, DM(V) , 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR W   '//IDPROG, DM(W) , 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR RR  '//IDPROG, DM(RR), 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR R0  '//IDPROG, DM(R0), 1 , NBORLU*NTETA)
+C 
+         IF (.NOT. POLAR) THEN
+C 
+           CALL MESSAO ('TRANSFORMATION EN COORDONNEES POLAIRES')
+C 	  
+           DO I = 1, NBORLU
+             K = (I-1)*NTETA
+	     DO J = 0, NTETA-1
+               C        = DCOS(DM(ADTETA+J))
+               S        = DSIN(DM(ADTETA+J))
+               UX       = DM(U+K+J)
+               UY       = DM(V+K+J)
+               RX       = DM(RR+K+J)
+               RY       = DM(R0+K+J)
+               DM(U+K+J)  = C*UX+S*UY
+               DM(V+K+J)  = C*UY-S*UX
+               DM(RR+K+J) = C*RX+S*RY
+               DM(R0+K+J) = C*RY-S*RX
+             END DO
+           END DO
+C 
+           CALL IMPTDT('VALEUR U   '//IDPROG, DM(U) , 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR V   '//IDPROG, DM(V) , 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR W   '//IDPROG, DM(W) , 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR RR  '//IDPROG, DM(RR), 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR R0  '//IDPROG, DM(R0), 1 , NBORLU*NTETA)
+C 
+C 
+         END IF
+C 
+C       Traitement des donnees :
+C 
+C       Il faut :  a ) calculer la valeur des deplacements sur tout le bord
+C                  b ) developper les deplacements en series de Fourier
+C                  c ) modifier les seconds membres en consequence
+C                  d ) modifier les diagonales des matrices K0n en consequence
+C 
+C       Realisation du a : calcul de la valeur des deplacements sur tout le bord
+C 
+C       En flexion principe :
+C 
+C       u et v, w rer et re0 sont calcules sur la ligne moyenne
+C       Donc on developpe u, v, w, rer, re0 en series de Fourier
+C       Le calcul des deplacements dans l'epaisseur sera effectue dans
+C 
+C       Tableau des valeurs developpees en serie de Fourier
+C       de Ur et U0 W RR R0 en fonction des angles
+C 
+        CALL GESTDP ('U-T-IMP-FI', NBIMP*NBMAT , DEVFU )
+        CALL GESTDP ('V-T-IMP-FI', NBIMP*NBMAT , DEVFV )
+        CALL GESTDP ('W-T-IMP-FI', NBIMP*NBMAT , DEVFW )
+        CALL GESTDP ('RRT-IMP-FI', NBIMP*NBMAT , DEVFRR )
+        CALL GESTDP ('R0T-IMP-FI', NBIMP*NBMAT , DEVFR0 )
+C 
+CD      CALL MESSAO ('Calcul du developpement de U')
+C 
+        COMPT = 0
+	DO I = 1, NBIMP
+C 
+	  CALL DEVSFO(NTETA , DM(U) , 0 , DM(DEVFU+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de V')
+          CALL DEVSFO(NTETA , DM(V) , 1 , DM(DEVFV+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de W')
+          CALL DEVSFO(NTETA , DM(W) , 0 , DM(DEVFW+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de RR')
+          CALL DEVSFO(NTETA , DM(RR) , 1 , DM(DEVFRR+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de R0')
+          CALL DEVSFO(NTETA , DM(R0) , 0 , DM(DEVFR0+COMPT) )
+C
+	  COMPT=COMPT+NTETA
+C 
+	END DO
+C 
+      CALL TDEFIF
+C 
+C -----------------------------------------------------------------------      
+C -----------------------------------------------------------------------      
+      ELSE IF ( DONFIC .AND. DONVOL) THEN
+C 
+C     Dans le cas d'une reprise en lecture des résultats d'un calcul
+C     élastique volumique; on devrait traiter une reprise sur toute
+C     l'épaisseur; pour l'instant on relit seulement la ligne moyenne
+C     et on reconstruit via TDEFIF
+C
+         CALL MESSAO ('FICHIER DE DONNEES DE TYPE VOLUME')
+         CALL MESSAO ('LECTURE DES FICHIERS DE DONNEES DANS '
+     &                //IDPROG )
+C 
+         CALL ADTBM ('TYP-FICHIE', ABORD)
+         CALL LONGEN ('TYP-FICHIE', NBORLU)
+	 NBIMP = NBORLU
+C 
+         NUMDIR = 12
+         NOMDIR = 'donneefic'
+C 
+C        SGU le 8/8/2008
+C        Modification pour le trou habité
+C        On relit des déplacements imposés sur les bords 2 et 4
+C        Souci avec TRACT=.T., pourquoi?
+C
+C        Tableau des valeurs reelles de Ur, U0 et W, Rer, Re0
+C        rangés bord par bord en fonction des angles
+C 
+         CALL GESTDP ('U-R-IMP-FI', NBORLU*NTETA , U)
+         CALL GESTDP ('V-R-IMP-FI', NBORLU*NTETA , V)
+         CALL GESTDP ('W-R-IMP-FI', NBORLU*NTETA , W)
+         CALL GESTDP ('RRR-IMP-FI', NBORLU*NTETA , RR)
+         CALL GESTDP ('R0R-IMP-FI', NBORLU*NTETA , R0)
+C 
+         DO I = 1 , NBORLU
+           NOMFIC = CHAFIC(12, I)
+           LNOMFI = LGCARG (CHAFIC(12, I), 20)
+           CALL MESSAO (
+     &          'POUR LE BORD '// bord(M(ABORD +I-1))//
+     &          ' LE FICHIER DE DONNEES DANS LE REPERTOIRE '//
+     &          '\donneefic A POUR NOM : '// NOMFIC )
+C 
+           CALL OUVFCD (NUMDIR, NOMFIC, LNOMFI, 'F', NTETA, IUNIT)
+C 
+           K = (I-1)*NTETA
+	   DO J = 0, NTETA-1
+             READ (IUNIT,*) DM(U+K+J), DM(V+K+J), DM(W+K+J),
+     &                      DM(RR+K+J),DM(R0+K+J)
+	   END DO
+         END DO
+C 
+         CALL IMPTDT('VALEUR U   '//IDPROG, DM(U) , 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR V   '//IDPROG, DM(V) , 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR W   '//IDPROG, DM(W) , 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR RR  '//IDPROG, DM(RR), 1 , NBORLU*NTETA)
+         CALL IMPTDT('VALEUR R0  '//IDPROG, DM(R0), 1 , NBORLU*NTETA)
+C 
+         IF (.NOT. POLAR) THEN
+C 
+           CALL MESSAO ('TRANSFORMATION EN COORDONNEES POLAIRES')
+C 	  
+           DO I = 1, NBORLU
+             K = (I-1)*NTETA
+	     DO J = 0, NTETA-1
+               C        = DCOS(DM(ADTETA+J))
+               S        = DSIN(DM(ADTETA+J))
+               UX       = DM(U+K+J)
+               UY       = DM(V+K+J)
+               RX       = DM(RR+K+J)
+               RY       = DM(R0+K+J)
+               DM(U+K+J)  = C*UX+S*UY
+               DM(V+K+J)  = C*UY-S*UX
+               DM(RR+K+J) = C*RX+S*RY
+               DM(R0+K+J) = C*RY-S*RX
+             END DO
+           END DO
+C 
+           CALL IMPTDT('VALEUR U   '//IDPROG, DM(U) , 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR V   '//IDPROG, DM(V) , 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR W   '//IDPROG, DM(W) , 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR RR  '//IDPROG, DM(RR), 1 , NBORLU*NTETA)
+           CALL IMPTDT('VALEUR R0  '//IDPROG, DM(R0), 1 , NBORLU*NTETA)
+C 
+C 
+         END IF
+C 
+C       Traitement des donnees :
+C 
+C       Il faut :  a ) calculer la valeur des deplacements sur tout le bord
+C                  b ) developper les deplacements en series de Fourier
+C                  c ) modifier les seconds membres en consequence
+C                  d ) modifier les diagonales des matrices K0n en consequence
+C 
+C       Realisation du a : calcul de la valeur des deplacements sur tout le bord
+C 
+C       En flexion principe :
+C 
+C       u et v, w rer et re0 sont calcules sur la ligne moyenne
+C       Donc on developpe u, v, w, rer, re0 en series de Fourier
+C       Le calcul des deplacements dans l'epaisseur sera effectue dans
+C 
+C       Tableau des valeurs developpees en serie de Fourier
+C       de Ur et U0 W RR R0 en fonction des angles
+C 
+        CALL GESTDP ('U-T-IMP-FI', NBIMP*NBMAT , DEVFU )
+        CALL GESTDP ('V-T-IMP-FI', NBIMP*NBMAT , DEVFV )
+        CALL GESTDP ('W-T-IMP-FI', NBIMP*NBMAT , DEVFW )
+        CALL GESTDP ('RRT-IMP-FI', NBIMP*NBMAT , DEVFRR )
+        CALL GESTDP ('R0T-IMP-FI', NBIMP*NBMAT , DEVFR0 )
+C 
+CD      CALL MESSAO ('Calcul du developpement de U')
+C 
+        COMPT = 0
+	DO I = 1, NBIMP
+C 
+	  CALL DEVSFO(NTETA , DM(U) , 0 , DM(DEVFU+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de V')
+          CALL DEVSFO(NTETA , DM(V) , 1 , DM(DEVFV+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de W')
+          CALL DEVSFO(NTETA , DM(W) , 0 , DM(DEVFW+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de RR')
+          CALL DEVSFO(NTETA , DM(RR) , 1 , DM(DEVFRR+COMPT) )
+C 
+CD        CALL MESSAO('Calcul du developpement de R0')
+          CALL DEVSFO(NTETA , DM(R0) , 0 , DM(DEVFR0+COMPT) )
+C
+	  COMPT=COMPT+NTETA
+C 
+	END DO
+C 
+      CALL TDEFIF
+C 
+      END IF
+C 
+      CALL SOPOUB (AM2LC, ADM2LC)
+C 
+CD    CALL RETOUD (IDPROG)
+C 
+      RETURN
+      END
+C -----------------------------------------------------------------------
+C -----------------------------------------------------------------------
+C 
+C     Traitement des deplacements donnes par fichier en traction
+C     Raccord a une solution plaque en deplacement en traction
+
+      SUBROUTINE TDEFIT
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+      include 'cominc_visu.h'
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C 
+      INTEGER  ADLOC1, ADGDP2, I
+      INTEGER  NUCO, TYPDEP, NBDDL, NBDDL2
+      INTEGER  NUBORD(2), TEST1
+      INTEGER  AM2LC, ADM2LC
+C 
+C     Pour les deplacements imposes pour U et V
+C 
+      INTEGER NBDDU2(5), DDLU2(10), ADDEP
+C 
+      CHARACTER*6 IDPROG
+      PARAMETER (IDPROG='TDEFIT')
+C 
+C     include 'identi.h'
+C 
+C -----------------------------------------------------------------------
+      CHARACTER*6      CPLAST(6) , IPLAST(2), CRITER(2)
+      CHARACTER*3      CENDOM(3) , ENDOMI(3)
+      CHARACTER*10     ENDDIF(3)
+      CHARACTER*9      BORD(4)
+      CHARACTER*3      CONTRA(6), DEFORM(6)
+      CHARACTER*4      DCONTR(6)
+      CHARACTER*4      DDEFOR(6)
+      CHARACTER*1      DEPLA(3)
+C 
+      BORD(1)    = 'inferieur'
+      BORD(2)    = 'interieur'
+      BORD(3)    = 'superieur'
+      BORD(4)    = 'exterieur'
+C 
+      DEPLA(1)   = 'u'
+      DEPLA(2)   = 'v'
+      DEPLA(3)   = 'w'
+C 
+      IF (VISORT) THEN
+C 
+         CONTRA(1)  = 'C11'
+         CONTRA(2)  = 'C22'
+         CONTRA(3)  = 'C12'
+         CONTRA(4)  = 'C23'
+         CONTRA(5)  = 'C13'
+         CONTRA(6)  = 'C33'
+C 
+         DEFORM(1)  = 'E11'
+         DEFORM(2)  = 'E22'
+         DEFORM(3)  = 'E12'
+         DEFORM(4)  = 'E23'
+         DEFORM(5)  = 'E13'
+         DEFORM(6)  = 'E33'
+C 
+         DCONTR(1)  = 'DC11'
+         DCONTR(2)  = 'DC22'
+         DCONTR(3)  = 'DC12'
+         DCONTR(4)  = 'DC23'
+         DCONTR(5)  = 'DC13'
+         DCONTR(6)  = 'DC33'
+C 
+         DDEFOR(1)  = 'DE11'
+         DDEFOR(2)  = 'DE22'
+         DDEFOR(3)  = 'DE12'
+         DDEFOR(4)  = 'DE23'
+         DDEFOR(5)  = 'DE13'
+         DDEFOR(6)  = 'DE33'
+C 
+      ELSE IF (VISUXY) THEN
+C 
+         CONTRA(1)  = 'Cxx'
+         CONTRA(2)  = 'Cyy'
+         CONTRA(3)  = 'Cxy'
+         CONTRA(4)  = 'Cyz'
+         CONTRA(5)  = 'Cxz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Exx'
+         DEFORM(2)  = 'Eyy'
+         DEFORM(3)  = 'Exy'
+         DEFORM(4)  = 'Eyz'
+         DEFORM(5)  = 'Exz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCxx'
+         DCONTR(2)  = 'DCyy'
+         DCONTR(3)  = 'DCxy'
+         DCONTR(4)  = 'DCyz'
+         DCONTR(5)  = 'DCxz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DExx'
+         DDEFOR(2)  = 'DEyy'
+         DDEFOR(3)  = 'DExy'
+         DDEFOR(4)  = 'DEyz'
+         DDEFOR(5)  = 'DExz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ELSE
+C 
+         CONTRA(1)  = 'Crr'
+         CONTRA(2)  = 'C00'
+         CONTRA(3)  = 'Cr0'
+         CONTRA(4)  = 'C0z'
+         CONTRA(5)  = 'Crz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Err'
+         DEFORM(2)  = 'E00'
+         DEFORM(3)  = 'Er0'
+         DEFORM(4)  = 'E0z'
+         DEFORM(5)  = 'Erz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCrr'
+         DCONTR(2)  = 'DC00'
+         DCONTR(3)  = 'DCr0'
+         DCONTR(4)  = 'DC0z'
+         DCONTR(5)  = 'DCrz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DErr'
+         DDEFOR(2)  = 'DE00'
+         DDEFOR(3)  = 'DEr0'
+         DDEFOR(4)  = 'DE0z'
+         DDEFOR(5)  = 'DErz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ENDIF
+C 
+      CPLAST(1)  = 'epsp11' 
+      CPLAST(2)  = 'epsp22' 
+      CPLAST(3)  = 'epsp12' 
+      CPLAST(4)  = 'epsp23' 
+      CPLAST(5)  = 'epsp13' 
+      CPLAST(6)  = 'epsp33' 
+C 
+      CENDOM(1)   = 'dfi'
+      CENDOM(2)   = 'dps' 
+      CENDOM(3)   = 'dpt'
+C 
+      IPLAST(1)  = 'SAUTP1' 
+      IPLAST(2)  = 'SAUTP2' 
+C 
+      ENDOMI(1)   = 'di1' 
+      ENDOMI(2)   = 'di2'
+      ENDOMI(3)   = 'di3'
+C 
+      ENDDIF(1)   = 'di1-di1ini'
+      ENDDIF(1)   = 'di2-di2ini'
+      ENDDIF(1)   = 'di3-di3ini'
+c -
+      CRITER(1)  = 'CRIT-S'
+      CRITER(2)  = 'CRIT-N'
+C -----------------------------------------------------------------------
+CD    CALL WLKBCD(IDPROG)
+C 
+      CALL ENPOUB (AM2LC, ADM2LC)
+C 
+C -----------------------------------------------------------------------
+C     adresse du tableau de localisation des numeros
+C     de noeuds ranges par ordre croissant par elements
+C     ranges couche par couche
+C -----------------------------------------------------------------------
+      CALL ADTBM ('TLOCN1    ', ADLOC1)
+C 
+C     POUR REMPLIR LE TABLEAU DDL-DPI-FI
+C 
+      CALL DEBUEN(ADGDP2)
+C 
+C     POUR REMPLIR LES TABLEAUX 'DDL-UI-FII', 'DDL-VI-FII', 'DDL-UI-FII', 'DDL-VI-FII'
+C 
+      CALL POUSME(NBIMP*5*NDDL, DDLU2(1))
+      NUBORD(1) = 2
+      NUBORD(2) = 4
+C
+      DDLU2(2)  = DDLU2(1)+NDDL
+      DDLU2(3)  = DDLU2(2)+NDDL
+      DDLU2(4)  = DDLU2(3)+NDDL
+      DDLU2(5)  = DDLU2(4)+NDDL
+      DDLU2(6)  = DDLU2(5)+NDDL
+      DDLU2(7)  = DDLU2(6)+NDDL
+      DDLU2(8)  = DDLU2(7)+NDDL
+      DDLU2(9)  = DDLU2(8)+NDDL
+      DDLU2(10) = DDLU2(9)+NDDL
+C 
+C     Interet : on impose la forme du deplacement sur tout un bord
+C     Exemple : raccord avec une solution plaque
+C 
+      NBDDL2    = 0
+      NBDDU2(1) = 0
+      NBDDU2(2) = 0
+      NBDDU2(3) = 0
+      NBDDU2(4) = 0
+      NBDDU2(5) = 0
+C 
+C     Les deplacements sont imposes sur les bords interieur et exterieur
+C 
+      DO I= 1, NBIMP
+C 
+        DO TYPDEP = 1, 2
+           DO NUCO = 1, NBCOU
+C 
+             CALL NDDLCD(
+     &           TYPDEP,NUBORD(I),NUCO,ADLOC1,M(ADGDP2+NBDDL2),NBDDL)
+             ADDEP =  DDLU2(TYPDEP)+NBDDU2(TYPDEP)
+             CALL COPITE(NBDDL, M(ADGDP2+NBDDL2), M(ADDEP))
+             NBDDU2(TYPDEP)  = NBDDU2(TYPDEP)+NBDDL
+             NBDDL2          = NBDDL2+NBDDL
+C 
+           END DO
+        END DO
+C 
+      END DO
+C 
+      CALL GESTEN('DDL-DPI-FII',NBDDL2,TEST1)
+C 
+      CALL IMPTET(' DDL POUR LES DEPLACEMENTS DANS '//IDPROG
+     &          ,M(ADGDP2),1,NBDDL2)
+C 
+C     Creation du tableau des developpements des numeros de ddl correspondant
+C     a U imposes par fichier sur le bord interieur
+C 
+      CALL GESTEN('DDL-UI-FII',NBDDU2(1),TEST1)
+        CALL COPITE(NBDDU2(1), M(DDLU2(1)), M(TEST1))
+C 
+      CALL IMPTET(' DDL U IMPOSE SUR LE BORD INTERIEUR DANS '//IDPROG
+     &       ,M(ADGDP2),1,NBDDU2(1))
+C 
+C     Creation du tableau des developpements des numeros de ddl correspondant
+C     a V imposes par fichier sur le bord interieur
+C 
+      CALL GESTEN('DDL-VI-FII',NBDDU2(2),TEST1)
+      CALL COPITE(NBDDU2(2), M(DDLU2(2)), M(TEST1))
+C 
+      CALL IMPTET(' DDL V IMPOSE SUR LE BORD INTERIEUR DANS '//IDPROG
+     &             ,M(TEST1),1,NBDDU2(2)  )
+C 
+      CALL SOPOUB(AM2LC,ADM2LC)
+C 
+CD    CALL RETOUD(IDPROG)
+      RETURN
+      END
+C -----------------------------------------------------------------------
+C -----------------------------------------------------------------------
+C 
+C     Traitement des deplacements donnes par fichier en flexion
+C     Determination des numeros de ddl concernes sur le bord interieur
+C     Raccord a une solution plaque en deplacement en flexion
+C 
+      SUBROUTINE TDEFIF
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+      include 'cominc_visu.h'
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C 
+      INTEGER  I, ADLOC1, ADGDP2, ADGDP4
+      INTEGER  NUCO, TYPDEP, NBDDL, NBDDL2, NBDDL4, ABORD
+      INTEGER  NUBORD(2), TEST1, REST, MOD
+      INTEGER  AM2LC, ADM2LC
+C 
+C     Pour les deplacaments imposes pour U et V
+C 
+      INTEGER NBDDU2(3), DDLU2(5), ADDEP
+C 
+      CHARACTER*6 IDPROG
+      PARAMETER (IDPROG='TDEFIF')
+C 
+C     include 'identi.h'
+C 
+C -----------------------------------------------------------------------
+      CHARACTER*6      CPLAST(6) , IPLAST(2), CRITER(2)
+      CHARACTER*3      CENDOM(3) , ENDOMI(3)
+      CHARACTER*10     ENDDIF(3)
+      CHARACTER*9      BORD(4)
+      CHARACTER*3      CONTRA(6), DEFORM(6)
+      CHARACTER*4      DCONTR(6)
+      CHARACTER*4      DDEFOR(6)
+      CHARACTER*1      DEPLA(3)
+C 
+      BORD(1)    = 'inferieur'
+      BORD(2)    = 'interieur'
+      BORD(3)    = 'superieur'
+      BORD(4)    = 'exterieur'
+C 
+      DEPLA(1)   = 'u'
+      DEPLA(2)   = 'v'
+      DEPLA(3)   = 'w'
+C 
+      IF (VISORT) THEN
+C 
+         CONTRA(1)  = 'C11'
+         CONTRA(2)  = 'C22'
+         CONTRA(3)  = 'C12'
+         CONTRA(4)  = 'C23'
+         CONTRA(5)  = 'C13'
+         CONTRA(6)  = 'C33'
+C 
+         DEFORM(1)  = 'E11'
+         DEFORM(2)  = 'E22'
+         DEFORM(3)  = 'E12'
+         DEFORM(4)  = 'E23'
+         DEFORM(5)  = 'E13'
+         DEFORM(6)  = 'E33'
+C 
+         DCONTR(1)  = 'DC11'
+         DCONTR(2)  = 'DC22'
+         DCONTR(3)  = 'DC12'
+         DCONTR(4)  = 'DC23'
+         DCONTR(5)  = 'DC13'
+         DCONTR(6)  = 'DC33'
+C 
+         DDEFOR(1)  = 'DE11'
+         DDEFOR(2)  = 'DE22'
+         DDEFOR(3)  = 'DE12'
+         DDEFOR(4)  = 'DE23'
+         DDEFOR(5)  = 'DE13'
+         DDEFOR(6)  = 'DE33'
+C 
+      ELSE IF (VISUXY) THEN
+C 
+         CONTRA(1)  = 'Cxx'
+         CONTRA(2)  = 'Cyy'
+         CONTRA(3)  = 'Cxy'
+         CONTRA(4)  = 'Cyz'
+         CONTRA(5)  = 'Cxz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Exx'
+         DEFORM(2)  = 'Eyy'
+         DEFORM(3)  = 'Exy'
+         DEFORM(4)  = 'Eyz'
+         DEFORM(5)  = 'Exz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCxx'
+         DCONTR(2)  = 'DCyy'
+         DCONTR(3)  = 'DCxy'
+         DCONTR(4)  = 'DCyz'
+         DCONTR(5)  = 'DCxz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DExx'
+         DDEFOR(2)  = 'DEyy'
+         DDEFOR(3)  = 'DExy'
+         DDEFOR(4)  = 'DEyz'
+         DDEFOR(5)  = 'DExz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ELSE
+C 
+         CONTRA(1)  = 'Crr'
+         CONTRA(2)  = 'C00'
+         CONTRA(3)  = 'Cr0'
+         CONTRA(4)  = 'C0z'
+         CONTRA(5)  = 'Crz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Err'
+         DEFORM(2)  = 'E00'
+         DEFORM(3)  = 'Er0'
+         DEFORM(4)  = 'E0z'
+         DEFORM(5)  = 'Erz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCrr'
+         DCONTR(2)  = 'DC00'
+         DCONTR(3)  = 'DCr0'
+         DCONTR(4)  = 'DC0z'
+         DCONTR(5)  = 'DCrz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DErr'
+         DDEFOR(2)  = 'DE00'
+         DDEFOR(3)  = 'DEr0'
+         DDEFOR(4)  = 'DE0z'
+         DDEFOR(5)  = 'DErz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ENDIF
+C 
+      CPLAST(1)  = 'epsp11' 
+      CPLAST(2)  = 'epsp22' 
+      CPLAST(3)  = 'epsp12' 
+      CPLAST(4)  = 'epsp23' 
+      CPLAST(5)  = 'epsp13' 
+      CPLAST(6)  = 'epsp33' 
+C 
+      CENDOM(1)   = 'dfi'
+      CENDOM(2)   = 'dps' 
+      CENDOM(3)   = 'dpt'
+C 
+      IPLAST(1)  = 'SAUTP1' 
+      IPLAST(2)  = 'SAUTP2' 
+C 
+      ENDOMI(1)   = 'di1' 
+      ENDOMI(2)   = 'di2'
+      ENDOMI(3)   = 'di3'
+C 
+      ENDDIF(1)   = 'di1-di1ini'
+      ENDDIF(1)   = 'di2-di2ini'
+      ENDDIF(1)   = 'di3-di3ini'
+c -
+      CRITER(1)  = 'CRIT-S'
+      CRITER(2)  = 'CRIT-N'
+C -----------------------------------------------------------------------
+CD    CALL WLKBCD(IDPROG)
+C 
+      CALL ENPOUB(AM2LC,ADM2LC)
+C 
+C     Adresse du tableau de localisation des numeros
+C     de noeuds ranges par ordre croissant par elements
+C     ranges couche par couche
+C 
+      CALL ADTBM ('TLOCN1    ', ADLOC1)
+C 
+C     POUR REMPLIR LE TABLEAU DDL-DPI-FI
+C 
+      CALL DEBUEN(ADGDP2)
+C 
+C     POUR REMPLIR LES TABLEAUX 'DDL-UI-FII', 'DDL-VI-FII', 'DDL-UI-FII', 'DDL-VI-FII'
+C 
+      CALL POUSME(NBIMP*5*NDDL, DDLU2(1))
+      CALL ADTBM ('TYP-FICHIE',  ABORD )
+      DO I = 1, NBIMP
+        NUBORD(I) = M(ABORD+I)
+      END DO
+C
+      DDLU2(2)  = DDLU2(1)+NDDL
+      DDLU2(3)  = DDLU2(2)+NDDL
+      DDLU2(4)  = DDLU2(3)+NDDL
+      DDLU2(5)  = DDLU2(4)+NDDL
+C 
+C     Interet : on impose la forme du deplacement sur tout un bord
+C     Exemple : raccord avec une solution plaque
+C 
+      NBDDL2    = 0
+      NBDDU2(1) = 0
+      NBDDU2(2) = 0
+      NBDDU2(3) = 0
+C 
+C     Les deplacements sont imposes sur les bords interieur et exterieur
+C 
+      DO I= 1, NBIMP
+C 
+        DO TYPDEP = 1, 2
+           DO NUCO = 1, NBCOU
+C 
+             CALL NDDLCD(
+     &           TYPDEP,NUBORD(I),NUCO,ADLOC1,M(ADGDP2+NBDDL2),NBDDL)
+             ADDEP =  DDLU2(TYPDEP)+NBDDU2(TYPDEP)
+             CALL COPITE(NBDDL, M(ADGDP2+NBDDL2), M(ADDEP))
+             NBDDU2(TYPDEP)  = NBDDU2(TYPDEP)+NBDDL
+             NBDDL2          = NBDDL2+NBDDL
+C 
+           END DO
+        END DO
+C 
+C       Pour W
+C 
+        REST   = MOD(NBCOU, 2)
+        TYPDEP = 3
+        NUCO = NBCOU/2
+C 
+        CALL NDDLCD(TYPDEP,NUBORD(I),NUCO,ADLOC1,M(ADGDP2+NBDDL2),NBDDL)
+        ADDEP              = DDLU2(TYPDEP)+NBDDU2(TYPDEP)
+        M( ADDEP )         = M(ADGDP2+NBDDL2+4)
+        M(ADGDP2+NBDDL2)   = M(ADGDP2+NBDDL2+4)
+        NBDDU2(TYPDEP)     = NBDDU2(TYPDEP)+1
+        NBDDL2             = NBDDL2+1
+C 
+        IF ( REST .EQ. 1 ) THEN
+          NUCO = NBCOU/2+1
+          CALL NDDLCD(TYPDEP,NUBORD,NUCO,ADLOC1,M(ADGDP2+NBDDL2),NBDDL)
+          ADDEP            =  DDLU2(TYPDEP)+NBDDU2(TYPDEP)
+          M(ADDEP)         = M(ADGDP2+NBDDL2+4)
+          M(ADGDP2+NBDDL2) = M(ADGDP2+NBDDL2+4)
+          NBDDU2(TYPDEP)   = NBDDU2(TYPDEP)+1
+          NBDDL2           = NBDDL2+1
+        END IF
+C    
+C     Creation du tableau des developpements des ddl a
+C     deplacements imposes et verification de l'adresse de depart
+C  
+      END DO
+C 
+      CALL GESTEN('DDL-DPI-FII',NBDDL2,TEST1)
+C 
+      CALL IMPTET(' DDL POUR LES DEPLACEMENTS DANS '//IDPROG
+     &          ,M(ADGDP2),1,NBDDL2)
+C 
+C     Creation du tableau des developpements des numeros de ddl correspondant
+C     a U imposes par fichier sur le bord interieur
+C 
+      CALL GESTEN('DDL-UI-FII',NBDDU2(1),TEST1)
+        CALL COPITE(NBDDU2(1), M(DDLU2(1)), M(TEST1))
+C 
+      CALL IMPTET(' DDL U IMPOSE SUR LE BORD INTERIEUR DANS '//IDPROG
+     &       ,M(ADGDP2),1,NBDDU2(1))
+C 
+C     Creation du tableau des developpements des numeros de ddl correspondant
+C     a V imposes par fichier sur le bord interieur
+C 
+      CALL GESTEN('DDL-VI-FII',NBDDU2(2),TEST1)
+      CALL COPITE(NBDDU2(2), M(DDLU2(2)), M(TEST1))
+C 
+      CALL IMPTET(' DDL V IMPOSE SUR LE BORD INTERIEUR DANS '//IDPROG
+     &             ,M(TEST1),1,NBDDU2(2)  )
+C 
+C     Creation du tableau des developpements des numeros de ddl correspondant
+C     a W imposes par fichier sur le bord interieur
+C 
+      CALL GESTEN('DDL-WI-FII',NBDDU2(3),TEST1)
+        CALL COPITE(NBDDU2(3), M(DDLU2(3)), M( TEST1))
+C 
+      CALL IMPTET(' DDL W IMPOSE SUR LE BORD INTERIEUR DANS '//IDPROG
+     &           ,M(TEST1),1,NBDDU2(3)  )
+C 
+      CALL SOPOUB(AM2LC,ADM2LC)
+C 
+CD      CALL RETOUD(IDPROG)
+      RETURN
+      END
+C -----------------------------------------------------------------------
+C -----------------------------------------------------------------------
+C 
+C     Modification des deplacements donnes par fichier en FLEXION.
+C  
+C     Raccord a une solution plaque en deplacement en FLEXION.
+C
+C     SGU 27/08/2012 : A faire, extension au cas plusieurs bords !!!!
+
+      SUBROUTINE MDEFIF
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+C 
+      INTEGER U, V, W, RR, R0, TYP(5)
+      INTEGER DDLU(3), LONGU(3), VERLON(3)
+      INTEGER MOD, DBCOTE
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C 
+      INTEGER  ADCOTE, ADCOTL
+      INTEGER  ADLOC1, I, NUCO, TYPDEP, NBDDL
+      INTEGER  NUBORD, J
+      INTEGER  NFT, NUDDL(6), REST
+      INTEGER  APRECI, ADEFFO, EFFOLC, EFFORT, DBDDL
+      INTEGER  AM2LC, ADM2LC
+C 
+      DOUBLE PRECISION VALDEP
+      DOUBLE PRECISION MULDIA
+C 
+      CHARACTER*6 IDPROG
+      PARAMETER (IDPROG='MDEFIF')
+C 
+CD    CALL WLKBCD(IDPROG)
+C 
+      CALL ENPOUB( AM2LC , ADM2LC )
+C 
+C -----------------------------------------------------------------------
+      CALL ADTBDM('HAUT-NOEUD', ADCOTE)
+C 
+C     'U-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement
+C                       radial
+C 
+C     'V-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement
+C                       orthoradial
+C 
+C     'W-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement
+C                       normal
+C 
+C     'RRT-IM-FI' Tableau NTETA des valeurs developpees de la rotation
+C                       radiale
+C 
+C     'R0T-T-IM-FI' Tableau NTETA des valeurs developpees de la rotation
+C                       orthoradiale
+C 
+      CALL ADTBDM('U-T-IMP-FI',  U  )
+      TYP(1) = U  + NTDSFG
+C 
+      CALL ADTBDM('V-T-IMP-FI',  V  )
+      TYP(2) = V  + NTDSFG
+C 
+      CALL ADTBDM('W-T-IMP-FI',  W  )
+      TYP(3) = W  + NTDSFG
+C 
+      CALL ADTBDM('RRT-IMP-FI',  RR )
+      TYP(4) = RR + NTDSFG
+C 
+      CALL ADTBDM('R0T-IMP-FI',  R0 )
+      TYP(5) = R0 + NTDSFG
+C 
+C     Adresse du tableau de localisation des numeros
+C     de noeuds ranges par ordre croissant par elements
+C     ranges couche par couche
+C 
+      CALL ADTBM ('TLOCN1    ', ADLOC1)
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a U imposes par fichier sur le bord exterieur
+C 
+      CALL INFOEN('DDL-UI-FII', DDLU(1) ,LONGU(1) )
+C 
+CD    CALL IMPTET(' DDL U IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(1) ),1,LONGU(1)  )
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a V imposes par fichier sur le bord exterieur
+C 
+      CALL INFOEN('DDL-VI-FII',DDLU(2),LONGU(2))
+C 
+CD    CALL IMPTET(' DDL v IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(2) ),1,LONGU(2)  )
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a W imposes par fichier sur le bord exterieur
+C 
+      CALL INFOEN('DDL-WI-FII',DDLU(3),LONGU(3))
+C 
+CD    CALL IMPTET(' DDL W IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(3) ),1,LONGU(3)  )
+C 
+C     POUR VERIFIER LES LONGUEURS LUES
+C 
+      VERLON(1) = 0
+      VERLON(2) = 0
+      VERLON(3) = 0
+C 
+C -----------------------------------------------------------------------
+C     Sequence de modification des efforts pour les deplacements imposes
+C -----------------------------------------------------------------------
+C 
+C     Pour multiplier les deplacements par les termes
+C     diagonaux bloques
+C 
+      CALL ADTBDM('PRECISIONS',APRECI)
+C 
+      APRECI = APRECI+NTDSFG
+C 
+      CALL GSPOUD( 10 , EFFOLC)
+C 
+C     adeffo est l'adresse de depart du tableau des efforts pour
+C     la nft-ieme fonction du temps
+C 
+      CALL ADTBDM('MAT-EFFORT',ADEFFO)
+C 
+      NFT    = 1
+      EFFORT = ADEFFO+(NFT-1)*NDDL*NBMAT
+      NBDDL  = 3
+C 
+C     POUR U
+C 
+      TYPDEP= 1
+      DBDDL = 0
+      ADCOTL = ADCOTE
+C 
+      DO NUCO =  1 , NBCOU
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          DBCOTE = ADCOTL
+          DO I = 1 , NBDDL
+            VALDEP = DM( TYP(TYPDEP)+J)+DM( TYP(5)+J)*DM(DBCOTE)
+            DM( EFFOLC+I-1) = MULDIA*VALDEP
+            DBCOTE = DBCOTE+1
+          END DO
+          CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL ), NBDDL,
+     &                 DM(EFFOLC) )
+        END DO
+        VERLON(TYPDEP) = VERLON(TYPDEP) + NBDDL
+        DBDDL  = DBDDL  + NBDDL
+        ADCOTL = ADCOTL + NBDDL
+      END DO
+C 
+CD    CALL TESTEN ( LONGU(TYPDEP) , VERLON(TYPDEP) , IDPROG )
+C 
+C     POUR V 
+C 
+      TYPDEP= 2
+      DBDDL = 0
+      ADCOTL = ADCOTE
+C 
+      DO NUCO =  1 , NBCOU
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          DBCOTE = ADCOTL
+          DO I = 1 , NBDDL
+            VALDEP = DM( TYP(TYPDEP)+J)-DM( TYP(4)+J)*DM(DBCOTE)
+            DM( EFFOLC+I-1) = MULDIA*VALDEP
+            DBCOTE = DBCOTE+1
+          END DO
+          CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL), NBDDL,
+     &                 DM(EFFOLC) )
+        END DO
+        VERLON(TYPDEP) = VERLON(TYPDEP) + NBDDL
+        DBDDL  = DBDDL  + NBDDL
+        ADCOTL = ADCOTL + NBDDL
+      END DO
+C 
+CD    CALL TESTEN ( LONGU(TYPDEP) , VERLON(TYPDEP) , IDPROG )
+C 
+C     POUR W
+C 
+      TYPDEP= 3
+      DBDDL = 0
+      REST = MOD( NBCOU ,2 )
+      NUCO = NBCOU/2
+C 
+      DO J = -NTDSFG , NTDSFG
+        MULDIA = DM( APRECI+J)
+        VALDEP = DM( TYP(TYPDEP)+J)
+        DM( EFFOLC) = MULDIA*VALDEP
+        CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL ), 1, DM(EFFOLC) )
+      END DO
+C 
+      VERLON(TYPDEP) = VERLON(TYPDEP) + 1
+C 
+      DBDDL  = DBDDL+1
+C 
+      IF ( REST . EQ. 1 ) THEN
+        NUCO = NBCOU/2+1
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          VALDEP = DM( TYP(TYPDEP)+J)
+          DM( EFFOLC) = MULDIA*VALDEP
+          CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL ), 1, DM(EFFOLC))
+        END DO
+        VERLON(TYPDEP) = VERLON(TYPDEP) + 1
+        DBDDL  = DBDDL+1
+      END IF
+C 
+CD    CALL TESTEN ( LONGU(TYPDEP) , VERLON(TYPDEP) , IDPROG )
+C 
+C    DR  AJOUT le 16/2/96 : Hypothese de Kirchoff sur le bord de la plaque
+C 
+C    POUR W, r
+C 
+      TYPDEP = 3
+      NUBORD = 2
+C 
+      DO NUCO =  1 , NBCOU
+        CALL NDDLCR(TYPDEP, NUBORD, NUCO, ADLOC1, NUDDL, NBDDL)
+        IF (NBDDL .NE. 3) THEN
+          CALL ERREUD(0, ' ERREUR FATALE DANS '//IDPROG)
+        END IF
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          DO I = 1 , NBDDL
+            DM( EFFOLC+I-1) = MULDIA*DM( TYP(5)+J )
+          END DO
+C 
+C     DR          CALL ASVEFI( EFFORT, J, NUDDL, NBDDL, DM(EFFOLC) )
+C 
+        END DO
+      END DO
+C 
+      CALL SOPOUB( AM2LC , ADM2LC )
+C 
+CD    CALL RETOUD(IDPROG)
+C 
+      RETURN
+      END
+C -----------------------------------------------------------------------
+C -----------------------------------------------------------------------
+C 
+C     Modification des deplacements donnes par fichier en TRACTION.
+C     Deplacements traites par penalisation.
+C 
+C     Raccord a une solution plaque en deplacement en TRACTION.
+C 
+      SUBROUTINE MDEFIT
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+C 
+      INTEGER U, V, TYP(2)
+      INTEGER DDLU(2), LONGU(2), VERLON(2)
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C 
+      INTEGER  ADLOC1
+      INTEGER  I, NUCO, TYPDEP, NBDDL
+      INTEGER  J, NFT
+      INTEGER  APRECI, ADEFFO, EFFOLC, EFFORT, DBDDL
+      INTEGER  AM2LC, ADM2LC
+C 
+      DOUBLE PRECISION MULDIA
+C 
+      CHARACTER*6 IDPROG
+      PARAMETER (IDPROG='MDEFIT')
+C 
+CD    CALL WLKBCD(IDPROG)
+C 
+      CALL ENPOUB (AM2LC, ADM2LC)
+C 
+C -----------------------------------------------------------------------
+C     'U-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement radial
+C 
+      CALL ADTBDM ('U-T-IMP-FI', U)
+      TYP(1) = U+NTDSFG
+C 
+C     'V-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement orthoradial
+C 
+      CALL ADTBDM ('V-T-IMP-FI', V)
+      TYP(2) = V+NTDSFG
+C 
+C     Adresse du tableau de localisation des numeros
+C     de noeuds ranges par ordre croissant par elements
+C     ranges couche par couche
+C 
+      CALL ADTBM ('TLOCN1    ', ADLOC1)
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a U imposes par fichier sur le bord exterieur
+C 
+      CALL ADTBM ('DDL-UI-FII',DDLU(1) )
+      CALL LONGEN ('DDL-UI-FII',LONGU(1))
+C 
+CD    CALL IMPTET(' DDL U IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(1) ),1,LONGU(1)  )
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a V imposes par fichier sur le bord exterieur
+C 
+      CALL ADTBM ('DDL-VI-FII',DDLU(2))
+      CALL LONGEN ('DDL-VI-FII',LONGU(2))
+C 
+CD    CALL IMPTET(' DDL v IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(2) ),1,LONGU(2)  )
+C 
+C     POUR VERIFIER LES LONGUEURS LUES
+C 
+      VERLON(1) = 0
+      VERLON(2) = 0
+C 
+C -----------------------------------------------------------------------
+C     Sequence de modification des efforts pour les deplacements imposes
+C -----------------------------------------------------------------------
+C 
+C     Pour multiplier les deplacements par les termes
+C     diagonaux bloques
+C 
+      CALL ADTBDM ('PRECISIONS', APRECI)
+C 
+      APRECI = APRECI+NTDSFG
+C 
+      CALL GSPOUD (10, EFFOLC)
+C 
+C     adeffo est l'adresse de depart du tableau des efforts pour
+C     la nft-ieme fonction du temps
+C 
+      CALL ADTBDM ('MAT-EFFORT', ADEFFO)
+C 
+      NFT   = 1
+      EFFORT= ADEFFO+(NFT-1)*NDDL*NBMAT
+      NBDDL = 3
+C 
+      DO TYPDEP= 1 , 2
+        DBDDL = 0
+        DO NUCO =  1 , NBCOU
+          DO J = -NTDSFG , NTDSFG
+            MULDIA = DM(APRECI+J)
+            DO I = 1 , NBDDL
+              DM(EFFOLC+I-1) = MULDIA*DM(TYP(TYPDEP)+J)
+            END DO
+            CALL ASVEFI (EFFORT, J, M(DDLU(TYPDEP)+DBDDL ), NBDDL,
+     &                   DM(EFFOLC))
+          END DO
+          VERLON(TYPDEP) = VERLON(TYPDEP) + NBDDL
+          DBDDL = DBDDL+NBDDL
+        END DO
+C 
+CD      CALL TESTEN ( LONGU(TYPDEP) , VERLON(TYPDEP) , IDPROG )
+C 
+      END DO
+C 
+CD    CALL GSPOUD( NDDL*(NBMAT+NTETA) , VEREFF )
+C 
+CD    VERDEP = VEREFF+NDDL*NBMAT
+C 
+CD    DO I = -NTDSFG , NTDSFG
+CD      DEBEFF = ADEFFO+(I+NTDSFG)*NDDL
+CD      CALL MUMARE( 1.D0/DM(APRECI+I), NDDL, DM(DEBEFF), DM(VEREFF) )
+CD      VEREFF = VEREFF+NDDL
+CD    END DO
+C 
+CD    VEREFF =VEREFF-NBMAT*NDDL
+C 
+CD    CALL VRTSM ( 1 , DM(VEREFF) , DM(VERDEP)  )
+C 
+CD    CALL MESSAO(' APPEL A VEDIFT DANS '//IDPROG )
+CD    CALL VEDIFT ( 1 , DM(VERDEP) , NTETA*NDDL )
+C 
+      CALL SOPOUB (AM2LC, ADM2LC)
+C 
+CD    CALL RETOUD(IDPROG)
+C 
+      RETURN
+      END
+C -----------------------------------------------------------------------
+C -----------------------------------------------------------------------
+C 
+C     VERification des Deplacements Imposes  par Fichier en Traction
+C 
+C     Pour vefifier si la solution soit developpee soit reelle
+C     est conforme aux valeurs imposees.
+C 
+C     On envoie comme arguments :
+C 
+C     E ...... TYPE    0 = DEVELOPPEE
+C     E ...... TYPE    1 = REELLE
+C     E ...... DEPSOL  Solution testee
+C     E ...... LONG    Longueur de DEPSOL => (nddl,nbmat) si 0
+C                                         => (nteta,nddl) si 1
+C 
+      SUBROUTINE VEDIFT (TYPE, DEPSOL, LONG)
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+      include 'cominc_visu.h'
+C 
+      INTEGER           TYPE, LONG
+      DOUBLE PRECISION  DEPSOL(LONG)
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C 
+C     Pour les deplacaments imposes  pour U et V
+C 
+      INTEGER  DDLU(2), U, V, TYP(2), LONGU(2)
+C 
+      INTEGER TYPDEP, NUDDL, NUMDDL
+      INTEGER PLAC, J
+      INTEGER AM2LC, ADM2LC
+      INTEGER VALDEP, DEPIMP
+C 
+      CHARACTER*6 IDPROG
+      PARAMETER (IDPROG='VEDIFT')
+C 
+C     include 'identi.h'
+C 
+C -----------------------------------------------------------------------
+      CHARACTER*6      CPLAST(6) , IPLAST(2), CRITER(2)
+      CHARACTER*3      CENDOM(3) , ENDOMI(3)
+      CHARACTER*10     ENDDIF(3)
+      CHARACTER*9      BORD(4)
+      CHARACTER*3      CONTRA(6), DEFORM(6)
+      CHARACTER*4      DCONTR(6)
+      CHARACTER*4      DDEFOR(6)
+      CHARACTER*1      DEPLA(3)
+C 
+      BORD(1)    = 'inferieur'
+      BORD(2)    = 'interieur'
+      BORD(3)    = 'superieur'
+      BORD(4)    = 'exterieur'
+C 
+      DEPLA(1)   = 'u'
+      DEPLA(2)   = 'v'
+      DEPLA(3)   = 'w'
+C 
+      IF (VISORT) THEN
+C 
+         CONTRA(1)  = 'C11'
+         CONTRA(2)  = 'C22'
+         CONTRA(3)  = 'C12'
+         CONTRA(4)  = 'C23'
+         CONTRA(5)  = 'C13'
+         CONTRA(6)  = 'C33'
+C 
+         DEFORM(1)  = 'E11'
+         DEFORM(2)  = 'E22'
+         DEFORM(3)  = 'E12'
+         DEFORM(4)  = 'E23'
+         DEFORM(5)  = 'E13'
+         DEFORM(6)  = 'E33'
+C 
+         DCONTR(1)  = 'DC11'
+         DCONTR(2)  = 'DC22'
+         DCONTR(3)  = 'DC12'
+         DCONTR(4)  = 'DC23'
+         DCONTR(5)  = 'DC13'
+         DCONTR(6)  = 'DC33'
+C 
+         DDEFOR(1)  = 'DE11'
+         DDEFOR(2)  = 'DE22'
+         DDEFOR(3)  = 'DE12'
+         DDEFOR(4)  = 'DE23'
+         DDEFOR(5)  = 'DE13'
+         DDEFOR(6)  = 'DE33'
+C 
+      ELSE IF (VISUXY) THEN
+C 
+         CONTRA(1)  = 'Cxx'
+         CONTRA(2)  = 'Cyy'
+         CONTRA(3)  = 'Cxy'
+         CONTRA(4)  = 'Cyz'
+         CONTRA(5)  = 'Cxz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Exx'
+         DEFORM(2)  = 'Eyy'
+         DEFORM(3)  = 'Exy'
+         DEFORM(4)  = 'Eyz'
+         DEFORM(5)  = 'Exz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCxx'
+         DCONTR(2)  = 'DCyy'
+         DCONTR(3)  = 'DCxy'
+         DCONTR(4)  = 'DCyz'
+         DCONTR(5)  = 'DCxz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DExx'
+         DDEFOR(2)  = 'DEyy'
+         DDEFOR(3)  = 'DExy'
+         DDEFOR(4)  = 'DEyz'
+         DDEFOR(5)  = 'DExz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ELSE
+C 
+         CONTRA(1)  = 'Crr'
+         CONTRA(2)  = 'C00'
+         CONTRA(3)  = 'Cr0'
+         CONTRA(4)  = 'C0z'
+         CONTRA(5)  = 'Crz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Err'
+         DEFORM(2)  = 'E00'
+         DEFORM(3)  = 'Er0'
+         DEFORM(4)  = 'E0z'
+         DEFORM(5)  = 'Erz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCrr'
+         DCONTR(2)  = 'DC00'
+         DCONTR(3)  = 'DCr0'
+         DCONTR(4)  = 'DC0z'
+         DCONTR(5)  = 'DCrz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DErr'
+         DDEFOR(2)  = 'DE00'
+         DDEFOR(3)  = 'DEr0'
+         DDEFOR(4)  = 'DE0z'
+         DDEFOR(5)  = 'DErz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ENDIF
+C 
+      CPLAST(1)  = 'epsp11' 
+      CPLAST(2)  = 'epsp22' 
+      CPLAST(3)  = 'epsp12' 
+      CPLAST(4)  = 'epsp23' 
+      CPLAST(5)  = 'epsp13' 
+      CPLAST(6)  = 'epsp33' 
+C 
+      CENDOM(1)   = 'dfi'
+      CENDOM(2)   = 'dps' 
+      CENDOM(3)   = 'dpt'
+C 
+      IPLAST(1)  = 'SAUTP1' 
+      IPLAST(2)  = 'SAUTP2' 
+C 
+      ENDOMI(1)   = 'di1' 
+      ENDOMI(2)   = 'di2'
+      ENDOMI(3)   = 'di3'
+C 
+      ENDDIF(1)   = 'di1-di1ini'
+      ENDDIF(1)   = 'di2-di2ini'
+      ENDDIF(1)   = 'di3-di3ini'
+c -
+      CRITER(1)  = 'CRIT-S'
+      CRITER(2)  = 'CRIT-N'
+C -----------------------------------------------------------------------
+CD    CALL WLKBCD(IDPROG)
+C 
+      CALL ENPOUB (AM2LC, ADM2LC)
+C 
+C -----------------------------------------------------------------------
+      CALL GSPOUD (2*LONG, VALDEP)
+      VALDEP = VALDEP-1
+      DEPIMP = VALDEP+LONG
+C 
+      IF (TYPE .EQ. 0) THEN
+C 
+        CALL MESSAO
+     &    ('VERIFICATION DES DEPLACEMENTS DEVELOPPES DANS '//IDPROG)
+C 
+        CALL ADTBM ('DDL-UI-FII', DDLU(1))
+        CALL LONGEN ('DDL-UI-FII', LONGU(1))
+C 
+CD      CALL IMPTEN ('DDL U IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG,
+CD                    M(DDLU(1)), 1, LONGU(1))
+C 
+C       Creation du tableau des developpements des numeros de ddl correspondant
+C       a V imposes par fichier sur le bord exterieur.
+C 
+        CALL ADTBM ('DDL-VI-FII', DDLU(2))
+        CALL LONGEN ('DDL-VI-FII', LONGU(2))
+C 
+CD      CALL IMPTEN ('DDL V IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG,
+CD                    M(DDLU(2)), 1, LONGU(2) )
+C 
+C       U-T-IMP-FI Tableau NTETA des valeurs developpees du deplacement radial
+C 
+        CALL ADTBDM ('U-T-IMP-FI', U)
+        TYP(1) = U+NTDSFG
+C 
+C       V-T-IMP-FI Tableau NTETA des valeurs developpes du deplacement orthoradial
+C 
+        CALL ADTBDM ('V-T-IMP-FI', V)
+        TYP(2) = V+NTDSFG
+C 
+C       Sequence de verification des deplacements imposes par fichier dans le cas developpe
+C 
+        IF (LONG .NE. NDDL*NBMAT) THEN
+          CALL IMPET ('POUR LE CAS DEVELOPPE : TYPE = ', TYPE )
+          CALL ERREUD (0 , 'MAUVAISE LONGUEUR DE DEPSOL DANS '//IDPROG)
+        END IF
+C 
+        DO TYPDEP= 1, 2
+C 
+          DO NUMDDL = 0, LONGU(TYPDEP)-1
+C 
+            NUDDL =  M( DDLU(TYPDEP) + NUMDDL )
+C 
+            DO J = -NTDSFG , NTDSFG
+              PLAC = (J+NTDSFG)*NDDL +NUDDL
+              DM(DEPIMP+J) = DM(TYP(TYPDEP)+J)
+              DM(VALDEP+J) = DEPSOL(PLAC)
+              IF (DABS(DM(DEPIMP+J)-DEPSOL(PLAC)) .GT. 1.D -8) THEN
+                CALL MESSAO ('!!!!!!!! PROBLEME DANS '//IDPROG )
+                CALL IMPET ('POUR LE NUMERO DE DDL DE TYPE '
+     &                      //DEPLA(TYPDEP)//' '//BORD(4)//
+     &                      ' DANS '//IDPROG, NUDDL )
+                CALL IMPET ('POUR LE DEVELOPPEMENT   ', J)
+                CALL IMPDT ('LA VALEUR IMPOSEE EST   ', DM(DEPIMP+J))
+                CALL IMPDT ('LA VALEUR DE DEPSOL EST ', DM(VALDEP+J))
+              END IF
+            END DO
+C 
+CD            CALL IMPEN ('POUR LE NUMERO DE DDL DE TYPE '
+CD                       //DEPLA(TYPDEP)//' '//BORD(4)//
+CD                        ' DANS '//IDPROG, NUDDL)
+CD            CALL IMPTDN ('DEP DEVELOPPE CALCULE '//IDPROG,
+CD                          DM(VALDEP+1), NTDSFG, 1)
+CD            CALL IMPTDN ('DEP DEVELOPPE IMPOSE  '//IDPROG ,
+CD                          DM(DEPIMP+1), NTDSFG, 1)
+C 
+          END DO
+C 
+        END DO
+C 
+      END IF
+C 
+      IF (TYPE .EQ. 1) THEN
+C 
+        CALL MESSAO
+     &  ('VERIFICATION DES DEPLACEMENTS REELS DANS'//IDPROG)
+C 
+        CALL ADTBM ('DDL-UI-FII', DDLU(1))
+        CALL LONGEN ('DDL-UI-FII', LONGU(1))
+C 
+CD      CALL IMPTEN ('DDL U IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG,
+CD                    M(DDLU(1)), 1, LONGU(1))
+C 
+C       Creation du tableau des developpements des numeros de ddl correspondant
+C       a V imposes par fichier sur le bord exterieur
+C 
+        CALL ADTBM ('DDL-VI-FII', DDLU(2))
+        CALL LONGEN ('DDL-VI-FII', LONGU(2))
+C 
+CD      CALL IMPTEN ('DDL V IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG,
+CD                    M(DDLU(2)), 1, LONGU(2))
+C 
+C       U-R-IMP-FI Tableau NTETA des valeurs developpees du deplacement radial
+C 
+        CALL ADTBDM ('U-R-IMP-FI', U)
+        TYP(1) = U-1
+C 
+C       V-R-IMP-FI Tableau NTETA des valeurs developpes du deplacement orthoradial
+C 
+        CALL ADTBDM('V-R-IMP-FI',  V )
+        TYP(2) = V-1
+C 
+C        Sequence de verification des  deplacements imposes  par fichier dans le cas developpe
+C 
+        IF (LONG .NE. NDDL*NTETA) THEN
+          CALL IMPET ('POUR LE CAS DEVELOPPE : TYPE =' , TYPE)
+          CALL ERREUD (0, 'MAUVAISE LONGUEUR DE DEPSOL DANS '//IDPROG)
+        END IF
+C 
+        DO TYPDEP= 1, 2
+C 
+          DO NUMDDL = 0, LONGU(TYPDEP)-1
+C 
+            NUDDL =  M( DDLU(TYPDEP) + NUMDDL )
+            PLAC   = (NUDDL-1)*NTETA
+C 
+            DO J = 1, NTETA
+              DM(DEPIMP+J) = DM(TYP(TYPDEP)+J)
+              DM(VALDEP+J)  = DEPSOL(PLAC+J)
+              IF (DABS(DM(VALDEP+J) - DM(DEPIMP+J)) .GT. 1.D -6) THEN
+                CALL MESSAO ('!!!!!!!! PROBLEME DANS '//IDPROG )
+                CALL IMPET ('POUR LE NUMERO DE DDL DE TYPE '
+     &                      //DEPLA(TYPDEP)//' '//BORD(4)//
+     &                      ' DANS '//IDPROG, NUDDL )
+                CALL IMPET ('NUMERO D''ANGLE '//IDPROG, J)
+                CALL IMPDT ('LA VALEUR REELLE IMPOSEE EST ',
+     &                       DM(DEPIMP+J))
+                CALL IMPDT ('LA VALEUR DE REELE CALCULEE EST ',
+     &                       DM(VALDEP+J))
+              END IF
+            END DO
+C 
+CD          CALL IMPEN('POUR LE NUMERO DE DDL DE TYPE '
+CD          //DEPLA(TYPDEP)//' '//BORD(4)//' DANS '//IDPROG
+CD          , NUDDL )
+CD          CALL IMPTDN( 'DEP REEL CALCULE '//IDPROG ,
+CD                 DM(VALDEP+1),   NTETA , 1 )
+CD          CALL IMPTDN( 'DEP REEL IMPOSE '//IDPROG  ,
+CD                   DM(DEPIMP+1),NTETA , 1 )
+C 
+          END DO
+C 
+        END DO
+C 
+      END IF
+C 
+      CALL SOPOUB (AM2LC, ADM2LC)
+C 
+CD    CALL RETOUD(IDPROG)
+C 
+      RETURN
+      END
+C -----------------------------------------------------------------------
+C -----------------------------------------------------------------------
+C 
+C     Modification des deplacements donnes par fichier en FLEXION.
+C  
+C     Raccord a une solution plaque en deplacement en FLEXION.
+
+      SUBROUTINE MDEFIV
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+C 
+      INTEGER U, V, W, RR, R0, TYP(5)
+      INTEGER DDLU(3), LONGU(3), VERLON(3)
+      INTEGER MOD, DBCOTE
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C 
+      INTEGER  ADCOTE, ADCOTL
+      INTEGER  ADLOC1, I, NUCO, TYPDEP, NBDDL
+      INTEGER  NUBORD, J
+      INTEGER  NFT, NUDDL(6), REST
+      INTEGER  APRECI, ADEFFO, EFFOLC, EFFORT, DBDDL
+      INTEGER  AM2LC, ADM2LC
+C 
+      DOUBLE PRECISION VALDEP
+      DOUBLE PRECISION MULDIA
+C 
+      CHARACTER*6 IDPROG
+      PARAMETER (IDPROG='MDEFIV')
+C 
+CD    CALL WLKBCD(IDPROG)
+C 
+      CALL ENPOUB( AM2LC , ADM2LC )
+C 
+C -----------------------------------------------------------------------
+      CALL ADTBDM('HAUT-NOEUD', ADCOTE)
+C 
+C     'U-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement
+C                       radial
+C 
+C     'V-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement
+C                       orthoradial
+C 
+C     'W-T-IMP-FI' Tableau NTETA des valeurs developpees du deplacement
+C                       normal
+C 
+C     'RRT-IM-FI' Tableau NTETA des valeurs developpees de la rotation
+C                       radiale
+C 
+C     'R0T-T-IM-FI' Tableau NTETA des valeurs developpees de la rotation
+C                       orthoradiale
+C 
+      CALL ADTBDM('U-T-IMP-FI',  U  )
+      TYP(1) = U  + NTDSFG
+C 
+      CALL ADTBDM('V-T-IMP-FI',  V  )
+      TYP(2) = V  + NTDSFG
+C 
+      CALL ADTBDM('W-T-IMP-FI',  W  )
+      TYP(3) = W  + NTDSFG
+C 
+      CALL ADTBDM('RRT-IMP-FI',  RR )
+      TYP(4) = RR + NTDSFG
+C 
+      CALL ADTBDM('R0T-IMP-FI',  R0 )
+      TYP(5) = R0 + NTDSFG
+C 
+C     Adresse du tableau de localisation des numeros
+C     de noeuds ranges par ordre croissant par elements
+C     ranges couche par couche
+C 
+      CALL ADTBM ('TLOCN1    ', ADLOC1)
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a U imposes par fichier sur le bord exterieur
+C 
+      CALL INFOEN('DDL-UI-FII', DDLU(1) ,LONGU(1) )
+C 
+CD    CALL IMPTET(' DDL U IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(1) ),1,LONGU(1)  )
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a V imposes par fichier sur le bord exterieur
+C 
+      CALL INFOEN('DDL-VI-FII',DDLU(2),LONGU(2))
+C 
+CD    CALL IMPTET(' DDL v IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(2) ),1,LONGU(2)  )
+C 
+C     Tableau des developpements des numeros de ddl correspondant
+C     a W imposes par fichier sur le bord exterieur
+C 
+      CALL INFOEN('DDL-WI-FII',DDLU(3),LONGU(3))
+C 
+CD    CALL IMPTET(' DDL W IMPOSE SUR LE BORD EXTERIEUR DANS '//IDPROG
+CD                ,M(DDLU(3) ),1,LONGU(3)  )
+C 
+C     POUR VERIFIER LES LONGUEURS LUES
+C 
+      VERLON(1) = 0
+      VERLON(2) = 0
+      VERLON(3) = 0
+C 
+C -----------------------------------------------------------------------
+C     Sequence de modification des efforts pour les deplacements imposes
+C -----------------------------------------------------------------------
+C 
+C     Pour multiplier les deplacements par les termes
+C     diagonaux bloques
+C 
+      CALL ADTBDM('PRECISIONS',APRECI)
+C 
+      APRECI = APRECI+NTDSFG
+C 
+      CALL GSPOUD( 10 , EFFOLC)
+C 
+C     adeffo est l'adresse de depart du tableau des efforts pour
+C     la nft-ieme fonction du temps
+C 
+      CALL ADTBDM('MAT-EFFORT',ADEFFO)
+C 
+      NFT    = 1
+      EFFORT = ADEFFO+(NFT-1)*NDDL*NBMAT
+      NBDDL  = 3
+C 
+C     POUR U
+C 
+      TYPDEP= 1
+      DBDDL = 0
+      ADCOTL = ADCOTE
+C 
+      DO NUCO =  1 , NBCOU
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          DBCOTE = ADCOTL
+          DO I = 1 , NBDDL
+            VALDEP = DM( TYP(TYPDEP)+J)+DM( TYP(5)+J)*DM(DBCOTE)
+            DM( EFFOLC+I-1) = MULDIA*VALDEP
+            DBCOTE = DBCOTE+1
+          END DO
+          CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL ), NBDDL,
+     &                 DM(EFFOLC) )
+        END DO
+        VERLON(TYPDEP) = VERLON(TYPDEP) + NBDDL
+        DBDDL  = DBDDL  + NBDDL
+        ADCOTL = ADCOTL + NBDDL
+      END DO
+C 
+CD    CALL TESTEN ( LONGU(TYPDEP) , VERLON(TYPDEP) , IDPROG )
+C 
+C     POUR V 
+C 
+      TYPDEP= 2
+      DBDDL = 0
+      ADCOTL = ADCOTE
+C 
+      DO NUCO =  1 , NBCOU
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          DBCOTE = ADCOTL
+          DO I = 1 , NBDDL
+            VALDEP = DM( TYP(TYPDEP)+J)-DM( TYP(4)+J)*DM(DBCOTE)
+            DM( EFFOLC+I-1) = MULDIA*VALDEP
+            DBCOTE = DBCOTE+1
+          END DO
+          CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL), NBDDL,
+     &                 DM(EFFOLC) )
+        END DO
+        VERLON(TYPDEP) = VERLON(TYPDEP) + NBDDL
+        DBDDL  = DBDDL  + NBDDL
+        ADCOTL = ADCOTL + NBDDL
+      END DO
+C 
+CD    CALL TESTEN ( LONGU(TYPDEP) , VERLON(TYPDEP) , IDPROG )
+C 
+C     POUR W
+C 
+      TYPDEP= 3
+      DBDDL = 0
+      REST = MOD( NBCOU ,2 )
+      NUCO = NBCOU/2
+C 
+      DO J = -NTDSFG , NTDSFG
+        MULDIA = DM( APRECI+J)
+        VALDEP = DM( TYP(TYPDEP)+J)
+        DM( EFFOLC) = MULDIA*VALDEP
+        CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL ), 1, DM(EFFOLC) )
+      END DO
+C 
+      VERLON(TYPDEP) = VERLON(TYPDEP) + 1
+C 
+      DBDDL  = DBDDL+1
+C 
+      IF ( REST . EQ. 1 ) THEN
+        NUCO = NBCOU/2+1
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          VALDEP = DM( TYP(TYPDEP)+J)
+          DM( EFFOLC) = MULDIA*VALDEP
+          CALL ASVEFI( EFFORT, J, M(DDLU(TYPDEP)+DBDDL ), 1, DM(EFFOLC))
+        END DO
+        VERLON(TYPDEP) = VERLON(TYPDEP) + 1
+        DBDDL  = DBDDL+1
+      END IF
+C 
+CD    CALL TESTEN ( LONGU(TYPDEP) , VERLON(TYPDEP) , IDPROG )
+C 
+C    DR  AJOUT le 16/2/96 : Hypothese de Kirchoff sur le bord de la plaque
+C 
+C    POUR W, r
+C 
+      TYPDEP = 3
+      NUBORD = 4
+C 
+      DO NUCO =  1 , NBCOU
+        CALL NDDLCR(TYPDEP, NUBORD, NUCO, ADLOC1, NUDDL, NBDDL)
+        IF (NBDDL .NE. 3) THEN
+          CALL ERREUD(0, ' ERREUR FATALE DANS '//IDPROG)
+        END IF
+        DO J = -NTDSFG , NTDSFG
+          MULDIA = DM( APRECI+J)
+          DO I = 1 , NBDDL
+            DM( EFFOLC+I-1) = MULDIA*DM( TYP(5)+J )
+          END DO
+C 
+C     DR          CALL ASVEFI( EFFORT, J, NUDDL, NBDDL, DM(EFFOLC) )
+C 
+        END DO
+      END DO
+C 
+      CALL SOPOUB( AM2LC , ADM2LC )
+C 
+CD    CALL RETOUD(IDPROG)
+C 
+      RETURN
+      END

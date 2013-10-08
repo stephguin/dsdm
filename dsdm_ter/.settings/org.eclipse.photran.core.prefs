@@ -1,0 +1,4 @@
+EnableVPG=false
+FortranIncludePaths=/dsdm_ter\n
+FortranModulePaths=/dsdm_ter\n
+eclipse.preferences.version=1

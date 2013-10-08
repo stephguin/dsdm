@@ -1,0 +1,102 @@
+**
+**      *************************************
+**      Mots-clefs internes a l'interpreteur.
+**      *************************************
+**
+**
+**
+**
+*HELP
+= Pour connaitre tous les mots-clefs.
+*EXIT
+= Pour sortir proprement du programme.
+*EXPLIQUE-MOT-CLEF
+= Pour connaitre les arguments d'un mot clef, et le mode d'emploi.
+**
+**
+*ECHO
+= Permet de faire ecrire a l'interpreteur, les cartes qu'il lit, ainsi que
+= les valeurs des arguments.
+**
+*SUPPRIMER-ECHO
+**
+*ECRIT-REPRISE
++NOM-FICHIER-REPRISE  C    N
+= Permet d'ecrire dans le fichier que vous nommez, toutes les commandes,
+= pour reutilisation en batch ou en mode.
+**
+*REPRISE
++NOM-FICHIER-REPRISE    C   N
+= Permet de changer d'unite de lecture, et d'utiliser un fichier reprise
+= ATTENTION si l'on souhaite reprendre l'execution a la main il faut terminer
+= le fichier reprise par RETOUR-TERMINAL. 
+**
+*INTERROMPT-REPRISE
+= Pour interrompre la lecture sur le fichier reprise, en retablisant l'unite
+= de lecture par defaut.
+**
+*CONTINU-REPRISE
+= Pour poursuivre la lecture sur le fichier reprise apres un INTERROMPT-REPRISE.
+*RETOUR-TERMINAL
+= Retablit le terminal en unite de lecture.
+**
+*ROUTINES-TRACEES
+= Pour obtenir une liste des routines ou la trace est activee.
+**
+*ACTIVER-TRACE
++MODULE          C  ON
++BLOC-DE-MODULE  C  ON
++ECRAN-AUSSI     C  F   DEFAUT='NO  '
++TYPE            C  F   DEFAUT='NORMALE '
+= Pour definir les modules ou les blocs-de-modules a tracer.
+= A ecran-aussi on repondra "OUI" ou "YES" ou "NO" ou "NON".
+= On definiera le type de trace normale, ou profonde.
+**
+*INHIBER-TRACE
++MODULE          C  ON
++BLOC-DE-MODULE  C  ON
+= Pour supprimer la trace qui est actuellement activee, pour un module, ou
+= pour un bloc-de-modules.
+= L'un au plus des 2 arguments est nescessaire.
+**
+*LISTE-MODULES-TRACABLES
++MODULE-1       C   F  DEFAUT='      '
++MODULE-2       C   F  DEFAUT='      '
++MODULE-3       C   F  DEFAUT='      '
++MODULE-4       C   F  DEFAUT='      '
++MODULE-5       C   F  DEFAUT='      '
++MODULE-6       C   F  DEFAUT='      '
++MODULE-7       C   F  DEFAUT='      '
++MODULE-8       C   F  DEFAUT='      '
++MODULE-9       C   F  DEFAUT='      '
++MODULE-10      C   F  DEFAUT='      '
+= Pour definir les modules tracables dans le fichier de definition de la
+= trace.
+**
+*BLOC-DE-MODULES
++NOM-DU-BLOC    C    N
+**
+*DUMP-WALKBACK
+= Pour dumper la pile du walkback a l'instant present.
+= Permet de savoir dans quelle routine on se trouve et d'ou l'on vient.
+**
+*TRACE-HELP
++LISTE        C  ON
++BLOC         C  ON
+= Pour connaitre les noms de modules et blocs tracables.
+= LISTE prend deux valeurs : Modules pour obtenir la liste des modules
+=                            Blocs   pour obtenir la liste des blocs
+= BLOC  attend un nom de bloc dont on listera l'ensemble des modules.
+** 
+*FIN-LISTE
+= Pour arreter les lectures de listes (entiere,logique,....)          
+**
+*SUPER-PRECISION
+= Pour ecrire les reels avec 15 chiffres significatifs, 
+= affecte toutes les routines d'impression de reels. 
+= Pour retablir la precision d'impression normale (5 chiffres)
+= utiliser le MOT-CLEF "PRECISION-NORMALE"
+**
+*PRECISION-NORMALE
+= Pour revenir a une precision de 5 chiffres pour l'impression des reels
+** -------------------------------------------------------------------

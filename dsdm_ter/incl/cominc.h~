@@ -1,0 +1,530 @@
+C TAB S7 2; () 1:72
+C C*--------------------------------------------------------------------
+C
+C       CECI DOIT SE TROUVER DANS COMINC
+C          
+C *------------------------------------------------------------------
+c -
+C equivalent du tild apollo        
+c -
+      CHARACTER*120 tild  
+c -
+C longueur du tild apollo        
+c -
+      INTEGER LTILD
+c -
+C equivalent du tild apollo pour la directorie de sauvgarde
+c -
+      CHARACTER*120 tild1  
+c -
+C longueur du tild apollo pour la directorie de sauvgarde
+c -
+      INTEGER LTILD1
+c -
+C chemin et nom du fichier reprise
+c -
+      CHARACTER*120 tild2  
+c -
+C longueur effective de tild2
+c -
+      INTEGER LTILD2
+c -
+CC*   LM est la dimension du tableau des entiers
+      INTEGER LM
+C
+CC*   LDM est la dimension  du tableau DM des reels double-precision
+      INTEGER LDM
+CC*   LDMEFF est la dimension effective utilisee lors de l'execution
+      INTEGER LDMEFF
+CC*   NBTTM est le nombre total des tableaux d'entiers
+      INTEGER NBTTM
+C
+CC*   NBTTDM est le nombre total des tableaux double precision
+      INTEGER NBTTDM
+C * NBFIMX est le nombre maximum de fichiers
+      INTEGER NBFIMX
+C nombre de fonction du temps maximum
+      INTEGER NBFTMA
+C nombre de fonction admissibles a zero maximum
+      INTEGER NFADZM
+C nombre de directory de resultats maximum
+      INTEGER NBDIRM
+C nombre de directory de resultats maximum
+      INTEGER NBTMAX
+C nombre d'iteration de BFGS en ESPACE maximun
+      INTEGER NIBFEM
+C nombre d'iteration de BFGS en TEMPS maximun
+      INTEGER NIBFTM
+C nombre d'iteration GLOBALE maximun
+      INTEGER NIGLOB
+C nombre de delta de champ maxium conserves
+      INTEGER MXCDEL
+C nombre de ce du complexe
+      INTEGER NBCE
+C   NOMBRE MAXI DE NETTOYAGES POSSIBLES
+      INTEGER NBNEMX
+C 
+C     PARAMETER (LM=100000,LDM=15000000, NBTTM=1000,NBTTDM=1000)
+C     PARAMETER (LM=200000,LDM=30000000, NBTTM=2000,NBTTDM=2000)
+C     PARAMETER (LM=400000,LDM=60000000, NBTTM=2000,NBTTDM=4000)
+C     PARAMETER (LM=600000,LDM=80000000,NBTTM=2000,NBTTDM=4000)
+      PARAMETER (LM=1200000,LDM=160000000,NBTTM=2000,NBTTDM=4000)
+      PARAMETER (NBFIMX=114)
+      PARAMETER (NBFTMA=10)
+      PARAMETER (NFADZM=10)
+      PARAMETER (NBDIRM=30)
+      PARAMETER (NBTMAX =1000)
+      PARAMETER (NIBFEM =30)
+      PARAMETER (NIBFTM =7)
+      PARAMETER (NIGLOB =20)
+      PARAMETER (MXCDEL =4)
+      PARAMETER (NBNEMX =15)
+C -oa modif du 9/12/97 pour test adans calis1      
+      PARAMETER (NBCE  = 1)
+C
+C
+CC*   M est le tableau des entiers
+      INTEGER M
+C
+CC*   AM est le tableau des adresses des tableaux contenus dans M
+      INTEGER AM
+CC*   VERAM est le tableau des adresses des tableaux contenus dans M
+      INTEGER VERAM
+C
+CC*   LONGM est le tableau des longueurs des tableaux contenus dans M
+      INTEGER LONGM
+C
+CC*   AM1 est la premiere adresse libre dans M
+      INTEGER   AM1
+CC*   AM2 est la derniere adresse libre dans M
+      INTEGER AM2
+CC*   AM2EN est la derniere adresse libre dans M  EN ENTREE
+      INTEGER AM2EN
+C
+CC*   NBTAM est le nombre de tableaux  contenus dans M
+      INTEGER   NBTAM
+C
+C
+C
+CC*   DM est le tableau des double precision
+      DOUBLE PRECISION DM
+C
+CC*   ADM est le tableau des adresses des tableaux contenus dans DM
+      INTEGER ADM
+CC*   VERADM est le tableau des adresses des tableaux contenus dans DM
+      INTEGER VERADM
+C
+CC*   LONGDM est le tableau des longueurs des tableaux contenus dans DM
+      INTEGER LONGDM
+C
+CC*   ADM1 est la premiere adresse libre dans DM
+      INTEGER   ADM1
+C
+CC*   ADM2 est la derniere adresse libre dans DM
+      INTEGER ADM2
+CC*   ADM2EN est la derniere adresse libre dans DM EN ENTREE
+      INTEGER ADM2EN
+C
+CC*   NBTADM est le nombre de tableaux  contenus dans DM
+      INTEGER   NBTADM
+C
+CC*   CHARM est un tableau de caractere des noms des tableaux
+CC*   contenus dans M
+      CHARACTER*10 CHARM
+C
+CC*   CHARDM est un tableau de caractere des noms des tableaux
+CC*   contenus dans DM
+      CHARACTER*10 CHARDM
+C
+CC*   NBCOU est le nombre de couches
+      INTEGER   NBCOU
+C
+CC*   NBCOL est le nombre de colonnes
+      INTEGER   NBCOL
+C *
+CC*   NKINT est le nombre de comportement de d'interface
+      INTEGER   NKINT
+C *
+CC*   NKCOU est le nombre de comportement de couches
+      INTEGER   NKCOU
+C
+CC*   NBINT est le nombre d'interfaces
+      INTEGER   NBINT
+CC*   NBANGL est le nombre d'angles
+      INTEGER   NBANGL
+C
+CC*   NNOEUD est le nombre total de noeud du maillage
+      INTEGER   NNOEUD
+C
+CC*   NDDL est le nombre total de degres de liberte du maillage
+      INTEGER   NDDL
+C
+CC*   NEL1 est le nombre total d'elements du type 1(couche)
+      INTEGER   NEL1
+C
+CC*   NEL2 est le nombre total d'elements du type 2(interface)
+      INTEGER   NEL2
+C
+CC*   NUM est un indicateur :NUM=1 ==>numerotation est de type ligne
+CC*                         :NUM=2 ==>numerotation est de type colonne
+      INTEGER   NUM
+C
+C     RAYON est le rayon du trou de la plaque
+      DOUBLE PRECISION RAYON
+C
+C     RAYEXT est la distance au centre
+      DOUBLE PRECISION RAYEXT
+c
+C     THICK est la moitie de l'epaisseur totale du stratifie
+      DOUBLE PRECISION THICK
+C
+C gauss est un tableau des points de gauss
+      DOUBLE PRECISION GAUSS
+C
+C poids est un tableau des poids correspondants
+      DOUBLE PRECISION POIDS
+C XINTEG est le degres d'integration en r
+      INTEGER XINTEG
+C
+C YINTEG est le degres d'integration en r
+      INTEGER YINTEG
+C NTMAT est le nombre de termes stockes par matrice Kon
+      INTEGER NTMAT
+C NTDSF est le nombre de termes du developpement en serie de fourier en
+C efforts
+      INTEGER NTDSF
+C NTDSFG est le nombre de termes du developpement en serie de fourier
+C que l'on choisi de traiter( g pour geometrique)
+      INTEGER NTDSFG
+C NBMAT est le nombre de matrices
+      INTEGER NBMAT
+C NBZONE est le nombre de zones caracteristique des conditions limites
+C IL Y EN A AUTANT QUE DE FONCTIONS DU TEMPS ++> MAX =10
+      INTEGER NBZONE
+C N0MBRE DE FONCTIONS DU TEMPS DONNEES  NBFODO
+      INTEGER NBFODO
+C NCDIMP est le nombre de zones ou une composante du deplacement  est
+C impose
+      INTEGER NCDPIM
+C NCDIMP est le nombre de zones ou une composante du deplacement  est
+C bloquee ( developpement par developpement )
+      INTEGER NCBPIM
+C -
+C NCEFIM est le nombre de zone ou une composante du deplacement
+C correspond a un  effort impose
+      INTEGER NCEFIM
+C NCEFMP est le nombre de zone ou une composante du deplacement
+C est bloquee
+      INTEGER NCBLIM
+C
+C * DECLARATION DES DIFFERENTES DIMENSIONS
+C * NSIG EST LE NOMBRE DE CONTRAINTES (=6)
+      INTEGER NSIG
+C * NSAU EST LE NOMBRE DE SAUTS (=3)
+      INTEGER NSAU
+C * NEPS EST LE NOMBRE DE DEFORMATIONS (=6)
+      INTEGER NEPS
+C * NGAU1 EST LE NOMBRE DE POINTS D'INTEGRATION DU TYPE 1
+      INTEGER NGAU1
+C * NGAU2 EST LE NOMBRE DE POINTS D'INTEGRATION DU TYPE 2
+      INTEGER NGAU2
+C * NTETA EST LE NOMBRE DE BANDES ISSUE DE LA REPRESENTATION EN SERIE DE
+C * FOURIER ==> NTETA = 2*NTDSFG
+      INTEGER NTETA
+C * NDDLEL EST LE NOMBRE DE DDL ELEMENTAIRES
+      INTEGER NDDLEL
+C * DECLARATION DE PI
+      DOUBLE PRECISION PI
+C * NBFICH EST LE NOMBRE DE FICHIERS OUVERTS DANS LA DIRECTORY
+      INTEGER NBFICH( NBDIRM  )
+C * CHAFIC EST LE TABLEAU  DES NOMS DE  FICHIERS
+      CHARACTER*20 CHAFIC( NBFIMX , NBDIRM )
+C -
+C * lonnom est le tableau des longueurs de nom de fichiers
+C -
+      INTEGER LONNOM( NBFIMX , NBDIRM )
+C -
+C  NUFIOU EST LE TABLEAU DES NUMEROS DE  FICHIER  OUVERTS
+      INTEGER NUFIOU( 120 )
+C  NBFIOU EST LE NOMBRE  FICHIER  OUVERTS
+      INTEGER NBFIOU
+C -
+C -
+C * NBDIR est le nombre de directories utilisees
+      INTEGER NBDIR 
+C * LTEMPS  est la duree de l'intervalle de temps pris en compte
+      DOUBLE PRECISION LTEMPS
+
+C * CHADIR EST LE TABLEAU  DES NOMS DE  DIRECTORIES
+      CHARACTER*9 CHADIR( NBDIRM )
+C * NUMFIC EST LE TABLEAU  DES NOMS DE  FICHIERS
+      INTEGER NUMFIC( NBFIMX , NBDIRM )
+C *
+C * DUREE EST LA DUREE DU CHARGEMENT
+      DOUBLE PRECISION DUREE
+C * DUREE EST LA DUREE ACTUELLE PRISE EN COMPTE DU CHARGEMENT
+      DOUBLE PRECISION DUREAC
+C * ERRLOC  EST LE SUP DES ERREURS EN TEMPS A L'ETAPE LOCALE
+      DOUBLE PRECISION ERRLOC
+C * PREGRA  est la precision du gradient conjugue 
+      DOUBLE PRECISION PREGRA
+C * NPICMX MAXIMUM (INITIAL) EST LE NOMBRE (-1 = AU PREMIER ) DE PIQUETS DE TEWMPS
+      INTEGER NPICMX
+C *
+C * NPICET EST LE NOMBRE de L'ITERATION LOCALE precedente
+C *  (-1 = AU PREMIER ) DE PIQUETS DE TEWMPS
+      INTEGER NPICET
+C * NPICAC EST LE NOMBRE de  de  piquets de temps d'integration
+C *  (-1 = AU PREMIER ) DE PIQUETS DE TEWMPS
+      INTEGER NPICAC
+C * PICrep EST LE NOMBRE de actuel de  piquets de temps pour la reprise
+C *  (-1 = AU PREMIER ) DE PIQUETS DE TEWMPS
+      INTEGER PICREP
+C *
+C * NFOTPS EST LE NOMBRE DE FONCTIONS DU TEMPS NECESSAIRE AU CALCUL DES
+C * CHAMPS ADMISSIBLES
+      INTEGER NFOTPS
+C *
+C * NOMBRE DE REPRISES AVEC 'GRAND NETTOYAGE'
+      INTEGER NBNETT
+C 
+C * NOMBRE D'ETAPE LOCALE EFFECTUEE 
+      INTEGER NBETLC 
+C *
+C * NOMBRE TOTAL D'ETAPE LOCALE EFFECTUEE  
+      INTEGER NBETLT 
+c 
+C * NOMBRE D'ETAPE GLOBALE EFFECTUEE APRE L'NITIALISATION ORTHOTROPE
+      INTEGER NBETGL 
+C -
+C * PAS D'ETAPE LOCALE SI ELASTIQUE PUR
+      LOGICAL ELAS 
+C *
+C * si DCONV1= 1.d0 il y a deja eu convergence
+C -
+      DOUBLE PRECISION DCONV1
+C-
+C-    Temps de 1ere discretisation
+C-
+      DOUBLE PRECISION TEMDI1
+C -
+      CHARACTER*50  NOTAXE(60)
+C -
+C -  Nom des points sauvegardes
+C -
+      CHARACTER*50  NOMSAU(30)
+C *
+C * Pour l'etape globale 
+C ******************************************************************************
+C 
+C     Pour le stockage des fonctions du temps et des champs
+C 
+C ******************************************************************************
+C 
+C     NOMBRE DE FONCTIONS DU TEMPS POUR L'ETAPE GLOBALE
+      INTEGER NFTGLO
+C 
+C     NOMBRE DE FONCTIONS DU TEMPS SIG STOCKEES
+      INTEGER NBFSIG
+C 
+C     NOMBRE DE FONCTIONS DU TEMPS EPS STOCKEES
+      INTEGER NBFEPS
+C 
+C     NOMBRE DE CHAMPS DELTA MAXIMUM CREE (1+MXCDEL)
+      INTEGER CHAMAX
+C 
+C     NOMBRE DE CHAMPS MAXIMUM CREE (1+NIBFTM)
+      INTEGER CHARAX
+C 
+C     NOMBRE DE CHAMPS DEP REELS DEJA STOCKES
+      INTEGER NBDEPR
+C 
+C     NOMBRE DE CHAMPS DEP DEVELOPPES DEJA STOCKES
+      INTEGER NBDEVR
+C 
+C     NOMBRE DE CHAMPS DEP TOTAUX DEJA STOCKES
+      INTEGER NBDPTR
+C 
+C     NOMBRE DE CHAMPS EPS ADMISSIBLES TOTAUX REELS
+      INTEGER DEADTR
+C 
+C     NOMBRE DE CHAMPS SAU ADMISSIBLES TOTAUX REELS
+      INTEGER SAADTR
+C 
+C     NOMBRE DE CHAMPS DELTA SIG ADMISSIBLES A ZERO
+      INTEGER EVCOTR
+C 
+C     NOMBRE DE CHAMPS SIG ADMISSIBLES
+      INTEGER COTORE
+C 
+C     NOMBRE DE CHAMPS SGN ADMISSIBLES
+      INTEGER CNTORE
+C 
+C ******************************************************************************
+C 
+C     Numero de fichier de sauvegarde des dessins dans ficdessin
+C     Nom caracteristique du dessin
+C 
+C ******************************************************************************
+C 
+      CHARACTER*80 NOMDES           
+C-
+      INTEGER LNMDES
+C -
+      INTEGER IUNDES
+C -
+C -   Numero de ficjier de caracteristiques des dessins dans ficdessin
+      INTEGER IUNCAR                            
+C -   Numero de fichier des fonction du temps solutions
+      INTEGER  IFTSOL 
+C -   Numero de fichier des fonction du temps solutions
+      INTEGER  NTYPDE 
+C -   Numero de fichier des quantites admissibles solutions 
+      INTEGER  IQASOL
+C -
+C * LOGIQUE INDIQUANT LA NATURE DES COMMENTAIRES
+C -    .TRUE. ===> UTILISATEUR LANDA
+C -
+      LOGICAL STANDA
+C -
+C * LOGIQUE INDIQUANT SI LE COMPOSITE EST SYMETRIQUE
+C -    .TRUE. ===> 
+C -
+      LOGICAL SYM
+C -
+C * LOGIQUE INDIQUANT SI LE PLAN DE SYMETRIE EST UNE INTERFACE
+C -    .TRUE. ===> 
+C -
+      LOGICAL SYMPAR
+C -
+C * LOGIQUE INDIQUANT SI CERTAINES  DONNEES SE FONT PAR FICHIER
+C -    .TRUE. ===>  IL FAUT LES LIRE
+C -    TRACT=.TRUE. ==> type traction 
+C -    POLAR=.TRUE. ==> coordonnees polaires
+C -
+      LOGICAL     DONFIC
+      LOGICAL     TRACT
+      LOGICAL     POLAR   
+CDONHER  : Logique indiquant si il y a des donnees de type pression de hertz
+C par fichier
+CNBELZC : nombre d'EF de la zone de contact si DONHER
+      LOGICAL DONHER
+      INTEGER NBELZC      
+C -
+C -= NUPATE numero du pas de temps ou le predelaminage est impose
+c = pas de predelaminage ==> nupate= -1
+      INTEGER NUPATE
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C -
+C -    POUR LES DESSINS  +> passer cominc_visu.h le 26-07-96 oa
+C -
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C -
+C *     titre  et sa longueur    
+c        INTEGER LTITRE , ILTIT , LONTIT 
+c        CHARACTER*100 TITRE
+C -
+C -   Epaisseur du trait pour de beaux dessins
+C -
+C      INTEGER EPAISS     
+C -
+C   si on est sur ecran noir et blanc
+C   si on veut tracer les quantites pour les couches
+C   si on veut tracer les quantites pour les interfaces
+C   si on veut tracer les erreurs
+C   si on veut tracer les differences entre chapeaux et admissibles
+C   si on veut tracer les fonctions simples de controle ( appel a DESFON )
+C   si on veut tracer les fonction du temps en contraintes
+C   si on veut tracer les fonction du temps en deformation
+C   si on veut tracer l'ancienne version de dessin 
+C   si on veut tracer le paramatre de charge
+C   si on veut tracer le nombre d'iterations
+C   si on veut tracer toute la courbe parametre de charge
+C   si on le fichier paramc a deja ete rempli  pour cette exemple
+C -
+c       LOGICAL LCHCOU 
+c       LOGICAL LCHINT 
+c       LOGICAL LERREU 
+c       LOGICAL LDIFCO 
+c       LOGICAL LDFONC 
+c       LOGICAL LDFTCO 
+c       LOGICAL LDFTEP 
+c       LOGICAL ANCDES 
+c       LOGICAL LDPARC 
+c       LOGICAL LDTAUX 
+c       LOGICAL LDTPAR
+c       LOGICAL LITPAC
+c       LOGICAL COUTEM
+c       LOGICAL INTTEM
+c       LOGICAL LOGR0             
+C -
+C -
+C * DESSIN SUR BENSON SI TBENS
+c      LOGICAL TBENS 
+C * PAS DE DESSIN SUR ECRAN SI BATCH
+c      LOGICAL BATCH
+C * SI NOIR ET BLANC
+c      LOGICAL BLACKW
+C -
+      COMMON / ENTIER / M(LM)
+      COMMON / DOUBLE / DM(LDM)
+      COMMON / GESTIE / LDMEFF ,
+     &                 ADM(NBTTDM) , AM(NBTTM) ,LONGDM(NBTTDM),AM2EN
+     &               , LONGM(NBTTM) , ADM1 , ADM2 , AM1 , AM2 , ADM2EN
+     &               , NBTADM , NBTAM , VERAM(NBTTM) , VERADM( NBTTDM)
+      COMMON / GEOMEN /  NBCOU , NBCOL , NNOEUD
+     &               , NDDL , NEL1 , NEL2 , NUM ,
+     &               NBZONE(NBFTMA), NCDPIM,NCBPIM,  NCEFIM, 
+     &                NCBLIM , NBFODO
+      COMMON / GEOMDB / RAYON , RAYEXT , THICK
+      COMMON / MATEEN/  NKCOU , NKINT , NBINT , NBANGL
+      COMMON / INTEEN /  XINTEG , YINTEG , NTDSF , NTDSFG , NBMAT 
+     &                 , NTMAT 
+      COMMON / INTEDB / GAUSS(10) , POIDS(10) , PI
+      COMMON / NOMTAB / CHARM(NBTTM) , CHARDM(NBTTDM)
+      COMMON / DIMENS / NSIG , NSAU , NEPS , NGAU1 , NDDLEL , NTETA
+     &                , NGAU2
+      COMMON / FICH  / NBFICH ,NUMFIC , NBDIR , LONNOM
+      COMMON / TESFICH  / NUFIOU , NBFIOU
+      COMMON / FICHCAR  /CHADIR , CHAFIC
+C *
+      COMMON / DESSIN  / NOTAXE , NOMSAU , NOMDES
+C * pour l'etape locale
+      COMMON / LINEAR / ELAS
+      COMMON / ETLCEN  / NPICET, NFOTPS, NBNETT, NBETLC, NPICMX,
+     &                   NBETLT, NPICAC, PICREP, NBETGL
+      COMMON / ETLCDB  / DUREE , ERRLOC , DUREAC , DCONV1 , TEMDI1 ,
+     &                   LTEMPS
+C *
+C * pour l'etape globale
+      COMMON / ETGLEN  / NFTGLO
+      COMMON / CHAMP  / CHAMAX , 
+     &                  NBFSIG , NBFEPS   , NBDEPR , NBDEVR , NBDPTR ,
+     &                  CHARAX , DEADTR , SAADTR , EVCOTR , COTORE ,
+     &                  CNTORE
+C *
+      COMMON / PRECISCALCUL  /PREGRA
+C *
+      COMMON / GARDEDESSIN  / IUNDES , IUNCAR , LNMDES , NTYPDE
+C *
+      COMMON / SOLUTION  / IFTSOL , IQASOL
+C *
+      COMMON / TILD  / TILD , TILD1 , TILD2
+C *
+      COMMON / LTILD  / LTILD ,LTILD1 , LTILD2
+C *                                   
+      COMMON / DSDM  / STANDA  , SYM , SYMPAR , DONFIC ,
+     &                 TRACT   , POLAR , DONHER , NBELZC
+      COMMON /PREDELAMI/ NUPATE
+C *
+C *******************************************
+C *    DEFINITION DU COMMON /DESSI3/        *
+C *******************************************
+c      COMMON /ETITRE/    ILTIT , LONTIT 
+c      COMMON /CTITRE/    TITRE
+C *
+c
+c      COMMON / LOGDES  /BLACKW , LCHCOU , LCHINT , LERREU , LDIFCO , 
+c    &                  LDFONC , LDFTCO  , LDFTEP , ANCDES , LDPARC ,
+c    &                  LDTAUX , LDTPAR   , LITPAC , 
+c    &                  COUTEM , INTTEM  , TBENS , BATCH  , LOGR0
