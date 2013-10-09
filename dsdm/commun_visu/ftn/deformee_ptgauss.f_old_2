@@ -1,0 +1,788 @@
+        Subroutine triten (lontab, tab, tabtri)
+C SUBROUTINE TRIANT LES VALEURS DU TABLEAU ENTIER TAB ET LES METTANT PAR ORDRE c CROISSANT DaNS TABTRI	
+        integer lontab, tab(lontab), tabtri(lontab)
+c
+        do  i=1,lontab-1
+        do  j=i+1,lontab
+           if (TAB(j).LT.TAB(i)) then
+            TABTRI(i)= TAB(j) 
+	    TABTRI(j)= TAB(I)
+          endif
+        end do
+	end do
+        end
+
+
+C
+C ROUTINES UTILE POUR RETROUVER LES CHOSES DANS VISUAL DEPPLA MAIPAR DTEXPR
+C DANS DELAMI VCHAPT VCUPTE, VDERTE ,VRTSM, VPCGTE RCHARE CATELE LIB1/NUMEROTATION
+
+C     Ecriture dans le repertoire resultats des fichiers exploitables
+C     par PARAVIEW en tyerme de deplacement aux les points de Gauss fictifs
+C     associÈs au maillage crÈÈ par MAIPAR 
+C c'est ‡ dire au maillage POUR LE MOMENT NE NUMEROTATION COUCHE
+C de toutes les points de Gauss dans les bandes du calcul DSDM
+C range nteta, ncolpg, ncouchpg , npicet 
+C 
+      SUBROUTINE DEPRPG
+C 
+C Subroutine DEPRPG : crÈe les deplacements reels au points de Gauss associÈs ‡ maipar
+C                      pour tout les points de Gauss 
+C 
+C -----------------------------------------------------------------------
+C 
+C     DECLARATION DES PARAMETRES GLOBAUX
+C     """"""""""""""""""""""""""""""""""
+C   
+      include 'cominc.h'
+      include 'incl_visu_mail.h'
+C 
+C -----------------------------------------------------------------------
+C  
+C     DECLARATION DES PARAMETRES LOCAUX
+C     """"""""""""""""""""""""""""""""""
+C NNOERF NOMBRE DE NOEUDS SUR L'ELEMENT DE REFERENCE DISCRETISE POUR CONTENIR TOUT LES POINTS DE GAUSS
+C
+      INTEGER           NNOERF, DEBX, DEBY, VAL,LVFBNG,ADFBNG,DEBUT,P,Q
+      DOUBLE PRECISION  X, Y , LONGX, LONGY
+      DOUBLE PRECISION  N1,N2, N3,N4, N5, N6, N7,N8,N9,N10,N11, N12
+
+      INTEGER           LONDEN , ADRXYT
+      INTEGER           LONDEG , AGRXYT      
+C     
+      INTEGER            AM2LC, ADM2LC, ADANGL
+      INTEGER            I, J
+C Pour ecriture du fichier deplacement au maillage pt de Gauss
+C
+      INTEGER IUNIC
+      CHARACTER*30  NOMFI1
+      INTEGER       STATUS	
+C 
+      CHARACTER*9 NOMDIR 
+      CHARACTER*6 IDPROG 
+      PARAMETER (IDPROG='DEPRPG')
+C 
+D      CALL WLKBCD (IDPROG)
+C 
+C -----------------------------------------------------------------------
+C
+      CALL ENPOUB (AM2LC,ADM2LC)
+C
+      CALL ADTBDM ('ANGLES-GEO', ADANGL)
+D     CALL IMPTDT ('ANGLES-GEO', DM(ADANGL), 1, NTETA)
+C 
+C 
+      NOMDIR = 'resultats'
+C
+      CALL GSPOUD(XINTEG+1, DEBX)
+      CALL GSPOUD(YINTEG+1, DEBY)
+C 
+C 
+      LONGX=2.D0/DBLE(XINTEG)
+      LONGY=2.D0/DBLE(YINTEG)      
+C Creation des coordonnées des noeuds fictifs de l'élements de réference aux point de Gauss en x et y
+C par exemple enx pour 2 pt de Gauss -1, -1/3,1/3 et 1
+      DEBUT= DEBX
+      X= -1.D0
+      DO I=0,XINTEG
+        DM(DEBUT)= X
+        X=  X+LONGX
+        DEBUT = DEBUT+1
+        END DO
+      DEBUT = DEBY  
+      Y= -1.D0    
+      DO J=0, YINTEG
+           DM(DEBUT)= Y
+           Y=Y+LONGY
+           DEBUT = DEBUT +1
+      END DO 
+C 
+C ----------------------------------------------------------------------
+C     Creation d'un tableau  pour ranger les valeurs
+C     des fonctions elementaires ASSOCI…S AUX DEPLACEMENTS aux differents points de gauss
+C     1ere adresse:ADLC1
+C ----------------------------------------------------------------------
+
+C RAPPELS
+C 
+C         Dans le tableau appele TABELE 
+C 
+C         la numerotation ligne si num=1;<=====>2*(nbcol+2).le.3*(nbcou+1)
+C                          '''''                2*nbcol     .le.3*nbcou-1
+C         la numerotation colonne si num=2;<===>2*(nbcol+2).gt.3*(nbcou+1)
+C                          ''''''               2*nbcol    .gt.3*nbcou-1
+C -----------------------------------------------------------------------
+C         dans la numerotation ligne on a:
+C 
+C         l'element de la couche q de la colonne p a pour numero:
+C                     (Q-1)NBCOL+P
+C         et pour numero de premier noeud:
+C                      3(NBCOL+1)(Q-1)+P
+C         l'element de l'interface r de la colonne p a pour numero:
+C                      NEL1 +(R-1)NBCOL+P
+C         et pour numero de premier noeud:
+C                      (3R-1)(NBCOL+1)+P
+C -----------------------------------------------------------------------
+C         dans la numerotation colonne on a:
+C 
+C         l'element de la couche q de la colonne p a pour numero:
+C                     (P-1)NBCOU+Q
+C         et pour numero de premier noeud:
+C                      3(NBCOU)(P-1)+3Q-2
+C         l'element de l'interface r de la colonne p a pour numero:
+C                      NEL1 +(P-1)(NBCOU-1)+R
+C         et pour numero de premier noeud:
+C                      3(NBCOU(P-1)+R)
+C -----------------------------------------------------------------------
+C         on range sequentiellement les informations concernant
+C         les elements comme suit:
+C 
+C         element couche(type 1)
+C 
+C         - type
+C         - numero de couche
+C         - numero de colonne
+C         - numero de premier noeud    numerotation 4--------------3
+C         - numero de second noeud                  5--------------6
+C         - numero de troisieme noeud  choisie      1--------------2
+C         - numero de quatrieme noeud
+C         - numero de cinquieme noeud
+C         - numero de sixieme noeud
+C 
+C         element interface(type 2)
+C 
+C         - type
+C         - numero d' interface
+C         - numero de colonne
+C         - numero de premier noeud
+C         - numero de second noeued     numerotation 4------- 3
+C         - numero de troisieme noeud   choisie      1--------2
+C         - numero de quatrieme noeud
+C ----------------------------------------------------------------------
+C
+      P=XINTEG
+      Q=YINTEG
+      NNOERF=(P+1)*(Q+1)    
+C
+C    Nombre de valeurs des fonctions de base sur au noeud de l'élément de référence  du maillage point de Gauss 
+      LVFBNG = 12*NNOERF
+C     TABLEAU DES VALEURS DES FONCTIONS DE BASE AUX NOEUDS DU MAILLAGE GAUSS SUR L'ELEMENT DE REFERENCE
+      CALL GSPOUD(LVFBNG,ADFBNG)
+      VAL=ADFBNG-1
+C Pour pouvoir ensuite calculer
+C         U=N1*u1+N3*u2+N5*u3+N7*u4+N9*u5+N11*u6
+C          +N2*u'1+N4*u'2+N6*u'3+N8*u'4+N10*u'5+N12*u'6
+C
+C on détermine les valeurs des fonctions de base aux noeuds du maillage point de gauss
+C
+      DO J=0,Q
+C    cordonnée en Y du point considéré sur l'élément de référence  
+        Y = DM(DEBY+J)
+        DO I=0,P
+C         cordonnée en X du point considéré sur l'élément de référence  
+          X        = DM(DEBX+I)
+C
+          DM(VAL+1)=N1(X,Y)
+C 
+          DM(VAL+2)=N3(X,Y)
+C 
+          DM(VAL+3)=N5(X,Y)
+C 
+          DM(VAL+4)=N7(X,Y)
+C 
+          DM(VAL+5)=N9(X,Y)
+C 
+          DM(VAL+6)=N11(X,Y)
+C
+          DM(VAL+7)=N2(X,Y)
+C 
+          DM(VAL+8)=N4(X,Y)
+C 
+          DM(VAL+9)=N6(X,Y)
+C 
+          DM(VAL+10)=N8(X,Y)
+C 
+          DM(VAL+11)=N10(X,Y)
+C 
+          DM(VAL+12)=N12(X,Y)
+C 
+
+c
+C         CALL IMPDT(' POUR X', X)
+C         CALL IMPDT(' POUR Y', Y)
+C         CALL IMPTDT('FCTS AUX POINT DE GAUSS', DM(VAL+1), 1, 12)	  
+C 
+          VAL       =VAL +12 
+        END DO
+	
+C   
+      END DO
+
+C
+C TAILLE DU TABLEAU DES DEPLACEMENT AUX NOEUD DU MAILLAGE REEL A TOUT PIQUET DE TEMPS 
+C 
+      LONDEN= NTETA*NDDL*NPICET
+C
+      CALL GSPOUD(LONDEN , ADRXYT)
+C Valeur des déplacement aux noeuds du maillage "réel" en coordonnées cartésiennes      
+      CALL DEPREN(DM(ADRXYT))
+C
+D      NOMFI1 = 'deplacement_reel'
+D      CALL NUNFOU(IUNIC)
+D      CALL CREFIC (2, NOMDIR, NOMFI1, 15, 'F', LONDEN, IUNIC)
+c       CALL TEST_FORMAT (LONTAB, TAB)
+D      WRITE (IUNIC, FMT=16, ERR=99000, IOSTAT=STATUS)
+D    &      (DM(ADRXYT-1+I), I=1, LONDEN)
+D16    FORMAT(E12.5)
+C 
+C      CALL ECFICD (IUNIC, DM(AGRXYT), AGRXYT, LONDEG)      
+D      CALL FERFIC (2, IUNIC, IDPROG)     
+C 
+C NOMBRE DE VALEURS ASSOCIES AU DEPLACEMENT ( suivant X, Y, Z) POUR LE MAILLAGE DEFINIT POUR CONTENIR TOUS LES POINTS DE GAUSS *NPICET
+C Attention On ne calcule que les valeurs du déplacement aux noeuds => 3 par les valeurs des dérivées en r 
+C
+      LONDEG=NTETA*3*(NBCOL*XINTEG+1)*NBCOU*(YINTEG+1)*NPICET
+C
+C RESERVATION DE PLACE ET MISE A ZERO DU TABLEAU DES VALEURS DES DEPLACEMENTS AUX NOEUDS DU MAILLAGE
+C  CONTENANT LES POINTS DE GAUSS POUR TOUT LES PIQUETS DE TEMPS
+C   
+      CALL GSPOUD(LONDEG , AGRXYT)     
+C 
+C Valeur des déplacements aux noeuds du maillage "points de Gauss" en coordonnées cartésiennes  
+C   
+C POUR LA NUMEROTATION COUCHE on calcule aux noeuds du maillage points de Gauss:
+C         U=N1*u1+N3*u2+N5*u3+N7*u4+N9*u5+N11*u6
+C          +N2*u'1+N4*u'2+N6*u'3+N8*u'4+N10*u'5+N12*u'6
+
+      CALL DEPREG(LVFBNG,DM(ADFBNG),LONDEN,DM(ADRXYT),LONDEG,DM(AGRXYT))
+C
+C ECRITURE DANS ?????
+C
+D     CALL IMPTDT('deplacement gauss', DM(AGRXYT), 1, LONDEG)
+      NOMFI1 = 'deplacement'
+      CALL NUNFOU(IUNIC)
+      CALL CREFIC (2, NOMDIR, NOMFI1, 15, 'F', LONDEG, IUNIC)
+c       CALL TEST_FORMAT (LONTAB, TAB)
+      WRITE (IUNIC, FMT=15, ERR=99000, IOSTAT=STATUS)
+     &      (DM(AGRXYT-1+I), I=1, LONDEG)
+15    FORMAT(E12.5)
+C 
+C      CALL ECFICD (IUNIC, DM(AGRXYT), AGRXYT, LONDEG)      
+      CALL FERFIC (2, IUNIC, IDPROG)
+
+
+      CALL SOPOUB (AM2LC, ADM2LC)
+C 
+D     CALL RETOUD (IDPROG)
+      RETURN
+C 
+99000 CONTINUE
+      CALL IMPCT ('NOM DE ROUTINE ', IDPROG)
+      CALL IMPET ('NUMERO D''UNITE', IUNIT)
+      CALL IMPET ('STATUS ', STATUS)
+      CALL ERROR_$PRINT (STATUS)
+      WRITE (6, 99100) IUNIT, STATUS
+99100 FORMAT (/,'PROBLEME ECRITURE SUR UNITE : ', I10,/,
+     &         ' STATUS : ', I10,/)
+C 
+      CALL ERREUD (0,' BOFFFFFFFF ???')
+
+      END  
+      
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C -
+C -      CALCUL des déplacements REELS AUX NOEUDS EN TOUT TEMPS EN COORDONNEES CARTESIENNES
+C        APRES L'ETAPE GLOBALE COURANTE
+C -
+         SUBROUTINE DEPREN( VDEPRE )
+C On envoie comme arguments:
+C
+C  VDEPRE Valeur des déplacements reels aux noeuds (nteta,nddl,npicet)
+C
+C======================================================================
+C *     Declaration des parametres globaux
+C       """"""""""""""""""""""""""""""""""
+C
+      include 'cominc.h'
+      include 'cominc_visu.h'   
+C     
+      DOUBLE PRECISION VDEPRE(NPICET*NTETA*NDDL)
+C
+C**********************************************************************
+C
+C *   Declaration des parametres locaux
+C     """""""""""""""""""""""""""""""""
+C
+      CHARACTER*3 CARETG
+C      
+      INTEGER FTREE7
+      INTEGER DEPREE, DEPCH0, ADANGL, ADER, ADTETA, I, DEBUT
+      INTEGER LONDEL, LONDEN, AVANT , DEB
+      INTEGER  ADRU, ADRUP,ADRV,ADRVP,ADRW,ADRWP
+      INTEGER L, K, J , TEST , DECOU, DECOL    
+c -
+      INTEGER AM2LC,ADM2LC 
+C
+C      DOUBLE PRECISION  VALTEST
+C -
+      CHARACTER*6 IDPROG 
+      PARAMETER (IDPROG='DEPREN')
+c -
+      include 'identi.h'
+C
+C
+D      CALL WLKBCD(IDPROG)
+C
+      CALL ENPOUB(AM2LC,ADM2LC)
+C***********************************************************************
+
+C -
+      CALL IDENTI( NUETGL ,  CARETG)
+      
+      CALL INFODP('FT-EPS-'//CARETG,FTREE7,FTEPMX)
+C -
+      FTEPMX = FTEPMX/NPICET
+C -   
+      DBFTEP  = 1
+      FIFTEP  = FTEPMX
+C -
+      DBCHEP =  1
+      FICHEP =  FTEPMX
+C -
+      CALL IMPET(' DEBUT DES FONCTIONS DU TEMPS'//
+     &     ' EN DEPLACEMENT '//IDPROG, DBFTEP )
+      CALL IMPET('   FIN DES FONCTIONS DU TEMPS'//
+     &     ' EN DEPLACEMENT '//IDPROG, FIFTEP )
+C -
+      CALL IMPET('DEBUT DES FONCTIONS EN ESPACE'//
+     &    ' EN DEPLACEMENT '//IDPROG, DBCHEP )
+      CALL IMPET('  FIN DES FONCTIONS EN ESPACE'//
+     &    ' EN DEPLACEMENT '//IDPROG, FICHEP )
+C -                                  
+      CALL ADTBDM('DEPLA-ADMI' , DEPCH0)
+c -
+      CALL ADTBDM ('ANGLES-GEO', ADANGL)
+C -      
+      CALL GSPOUD ( 2*NTETA , ADER)
+      ADER   = ADER-1
+      ADTETA = ADER+NTETA
+C       
+      DO I = 1 ,NTETA
+         DM( ADER+I  ) = DCOS( DM( ADANGL+I) )
+         DM( ADTETA+I) = DSIN( DM( ADANGL+I) )
+      END DO
+C - 
+      LONDEL = NTETA*NDDL
+C -
+      CALL GSPOUD( LONDEL, DEPREE)
+C
+C  PREMIERE ADRESSE DU TABLEAU VDEPRE
+C   
+C si c'etait range nteta , 6
+C      DEBUT = 1
+      DECOU=(NBCOL+1)*6*NTETA
+      DECOL= 6*NTETA
+C  
+      DO I=1,  NPICET
+C -
+         CALL VCHAPT(
+C -
+C -        Valeur des champs admissible a un pas de tepms ici les deplacements en coordonnÈes polaires
+C                   (?)
+C -                                             
+C      .... on envoie
+     &    FTEPMX , NDDL*NTETA , DBFTEP , FIFTEP , DBCHEP , FICHEP ,
+     &    DM(DEPCH0) , DM(FTREE7)  , I ,
+C      .... on recupere
+     &      DM(DEPREE)  )
+C  -
+          DO L= 0, 3*NBCOU-1
+            DO K = 0 , NBCOL
+               AVANT= DEPREE+L*DECOU+K*DECOL
+c	       DEB= L*DECOU+K*DECOL+(I-1)*LONDEL   
+C Pour rangement 6 ,(dll du neoud) puis  nteta 	                   
+               DO J = 1, NTETA
+                    DEBUT= DEB+J	       
+C si c'etait range nteta , 6	       
+C                  ADRU        = AVANT
+C                  ADRUP        = ADRU +NTETA
+C                  ADRV        = ADRUP+NTETA
+C                  ADRVP        = ADRV +NTETA
+C                  ADRW         = ADRVP+NTETA
+C                  ADRWP        = ADRW +NTETA
+ 
+C Pour rangement 6 ,(dll du neoud) puis  nteta 
+                  ADRU        = AVANT
+                  ADRUP       = ADRU + 1
+                  ADRV        =  ADRUP+ 1
+                  ADRVP        = ADRV +1
+                  ADRW         = ADRVP+1
+                  ADRWP        = ADRW +1
+   
+c     IF (DEBUT .EQ. 1) then
+c      Call Impet('ader +J', ader+J)
+c      Call Impet('adteta +J', adteta+J)
+c      call impdt('dm(ader +J)', dm(ader+J))
+c      call impdt('dm(adteta +J)', dm(adteta+J))
+c      Call Impet('adru', adru)
+c      Call Impet('adrv', adrv)
+c      call impdt('dm(adru)', dm(adru))
+c      call impdt('dm(adrv)', dm(adrv))
+c        VALTEST = DM(ADER+J)*DM(ADRU)-DM(ADTETA+J)*DM(ADRV)
+c     
+c               call impdt('vdepre(debut)', VALTEST)
+c     
+c             end if
+     
+            VDEPRE(DEBUT) = DM(ADER+J)*DM(ADRU)-DM(ADTETA+J)*DM(ADRV)
+C si c'etait range nteta , 6	    
+C              DEBUT         = DEBUT+1
+               DEBUT         = DEBUT+NTETA
+C Pour rangement 6 ,(dll du neoud) puis  nteta 
+            VDEPRE(DEBUT) =DM(ADER+J)*DM(ADRUP)-DM(ADTETA+J)*DM(ADRVP)
+C              DEBUT         = DEBUT+1 
+               DEBUT         = DEBUT+NTETA 
+            VDEPRE(DEBUT) = DM(ADTETA+J)*DM(ADRU)+DM(ADER+J)*DM(ADRV)
+C              DEBUT         = DEBUT+1
+               DEBUT         = DEBUT+NTETA
+            VDEPRE(DEBUT) = DM(ADTETA+J)*DM(ADRUP)+DM(ADER+J)*DM(ADRVP)
+C              DEBUT        = DEBUT+1  
+               DEBUT         = DEBUT+NTETA          
+            VDEPRE(DEBUT) = DM(ADRW)
+C              DEBUT        = DEBUT+1
+               DEBUT         = DEBUT+NTETA
+            VDEPRE(DEBUT) = DM(ADRWP)
+C              DEBUT        = DEBUT+1
+               DEBUT         = DEBUT+NTETA	    
+C  
+C PASSAGE A L'ANGLE SUIVANT POUR UR
+C                                                                                 
+c                  AVANT     = AVANT+1
+                 AVANT     = AVANT+6
+               END DO
+C PASSAGE AU NOEUD SUIVANT EN NUMEROTATION COUCHE ON DOIT DEMARRER POUR L'ANGLE 1 DEPREE+ *nteta                             
+           END DO 
+         END DO  
+      END DO   
+c      
+C TEST
+D      TEST= LONDEL*NPICET+1-DEBUT
+D      CALL IMPET ('TEST =0? DANS'//IDPROG, TEST)
+     
+C
+C***********************************************************************
+      CALL SOPOUB(AM2LC,ADM2LC)
+D     CALL RETOUD(IDPROG)
+      RETURN
+      END                                                               
+C 
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C -
+C -      CALCUL des déplacements REELS AUX NOEUDS DU MAILLAGE CONTENANT LES POINTS DE GAUSS
+C        EN TOUT TEMPS EN COORDONNEES CARTESIENNES
+C        APRES L'ETAPE GLOBALE COURANTE
+C -
+         SUBROUTINE DEPREG(LVFBNG,TDFBNG,LONDEN,VDRENT,LONDEG,VDREGT)
+C On envoie comme arguments:
+C
+C  LVFBNG, LONGUEUR DU TABLEAU DES VALEURS DES FONCTIONS DE BASE 
+c  AUX NOEUDS DU MAILLAGE GAUSS SUR L'ELEMENT DE REFERENCE
+c
+C  TDFBNG(LVFBNG) TABLEAU DES VALEURS DES FONCTIONS DE BASE 
+c  AUX NOEUDS DU MAILLAGE GAUSS SUR L'ELEMENT DE REFERENCE range pour la
+C  multiplication dans l'ordre avec les valeurs nodales 
+
+C 
+C  VDRENT Valeur des déplacements réels aux noeuds du maillage LONGUEUR LONDEN
+C         LONDEN= ((P+1)*NBCOL-1)*(Q+1) *NTETA*NPICET*3 
+C
+C ARGUMENTS EN SORTIE VDREGT
+C
+C   VDRENT Valeur des déplacements réels aux noeuds ASSOCIES AUX POINT DE GAUSS LONGUEUR LONDEG
+C     
+C        LONDEG=NTETA*3*(NBCOL*XINTEG+1)*NBCOU*(YINTEG+1)*NPICET
+C
+C======================================================================
+C *     Declaration des parametres globaux
+C       """"""""""""""""""""""""""""""""""
+C
+      INTEGER LVFBNG, LONDEN, LONDEG
+      DOUBLE PRECISION TDFBNG(LVFBNG),VDRENT(LONDEN), VDREGT(LONDEG)
+C
+      include 'cominc.h'
+      include 'cominc_visu.h'   
+C**********************************************************************
+C      Declaration des parametres locaux
+C     """""""""""""""""""""""""""""""""
+      INTEGER I, L, K, J , DECALE, FNPG
+      INTEGER NUY, NUX, COOR , VALDEP , DEP
+C POINTEURS POUR LE POSITIONNEMENT DANS VDRENT
+      INTEGER DNCOL, DNCAC, DNCAT,DNCOR, DEBUT, DEBUR
+C POINTEURS POUR LE POSITIONNEMENT DANS VDREGT
+      INTEGER  DGCORG, DGDLXG, DGCALG, DGCACG, DGCATG, POSTG, NBX   
+C -
+      INTEGER AM2LC,ADM2LC 
+D     INTEGER INCRE, ADPSG , ADPSGT
+D     INTEGER IUNIT, STATUS,INCTES,ADTES,LONTES 
+D     CHARACTER*30 NOMFI1 , NOMDIR    
+      CHARACTER*6 IDPROG
+      PARAMETER (IDPROG='DEPREG')
+      INCLUDE 'identi.h'
+C
+D     CALL WLKBCD(IDPROG)
+C
+      CALL ENPOUB(AM2LC,ADM2LC)
+C***********************************************************************
+D         NOMDIR= 'resultats'
+c
+c pour chaque teta sur chaque element il faut recuperer les valeurs aux noeuds 
+c de l'element des deplacements elementaires 
+C TABLEAU DES DECALAGE POUR LES VALEURS DES COMPOSANTES DU DEPLACEMENT AUX
+C NOEUDS DE L'ELEMENT 
+C 
+C         element couche(type 1)
+C 
+C         - type
+C         - numero de couche
+C         - numero de colonne
+C         - numero de premier noeud    numerotation 4--------------3
+C         - numero de second noeud                  5--------------6
+C         - numero de troisieme noeud  choisie      1--------------2
+C         - numero de quatrieme noeud
+C         - numero de cinquieme noeud
+C         - numero de sixieme noe                                              --------->  …..
+C                                                                              --------->
+C POUR LA NUMEROTATION COUCHE (en admettant que l'on note les ddl croissant    --------->
+C Principe pour sauter une ligne ajouter 6*(NBCOL+1)*NTETA
+C          pour passer au noeud de la ligne d'au dessus idem
+C          pour passer au noeud à droite 6*NTETA
+C 
+C POUR PASSER DU PREMIER AU NOEUD 2  DECALAGE 6 (NBDDL PAR NOEUD) : 6* NTETA
+C POUR PASSER DU PREMIER AU NOEUD 3  DECALAGE  2* (NBCOL+1) *6 * NTETA +  6* NTETA
+C POUR PASSER DU PREMIER AU NOEUD 4  DECALAGE  2* (NBCOL+1) *6 * NTETA
+C POUR PASSER DU PREMIER AU NOEUD 5  DECALAGE  6*(NBCOL+1)*NTETA
+C POUR PASSER DU PREMIER AU NOEUD 6  DECALAGE  6*(NBCOL+1)*NTETA + 6* NTETA
+C 
+C de plus on rappelle que 
+C 
+C         U=N1*u1+N3*u2+N5*u3+N7*u4+N9*u5+N11*u6
+C          +N2*u'1+N4*u'2+N6*u'3+N8*u'4+N10*u'5+N12*u'6
+C
+C ceci est en coordonnées polaires mais l'interpolation des déplacements
+c sur l'élement (en un point autre que les noeuds) qui a priori doit se faire
+C en cooordonnÈes polaires semble une opération inversible avec le passage en coordonnées cartésiennes
+C soit polaire-> cartesien puis interpolation = interpolation puis polaire -> cartesien 
+C a verifier plus en detail si les resultats sont bizzares et à ce moment changer DEPREN ne pas faire la
+C transformation en coordonnes cartésienne et ajouter cette transformation à la fin de cette routine
+C
+      CALL GSPOUE(5, DECALE) 
+      M(DECALE   )= 6 * NTETA
+      M(DECALE+1 )= 2* (NBCOL+1) *6 * NTETA +  6* NTETA    
+      M(DECALE+2 )= 2* (NBCOL+1) *6 * NTETA
+      M(DECALE+3 )= 6*(NBCOL+1)*NTETA   
+      M(DECALE+4 )= 6*(NBCOL+1)*NTETA + 6* NTETA
+C
+C TABLEAU DES VALEURS ELEMENTAIRES DE LA COMPOSANTE DE DEPLACEMENT CONCERNEE SUR L'ELEMENT
+C
+      CALL GSPOUD(12, VALDEP)    
+C
+C Principe en numérotation couche il faut relire le bon déplacement au noeud du bas de la couche 
+C considérée à la colonne considérée  soit le décalage suivant dans le tableau des valeurs des
+C déplacements réeels au noeuds  ON COMMENCE PAR DN TOUT LES INDICES DE DECALAGE CORRESPONDANT AU MAILLAGE REEL
+C Par piquet de temps
+C  on a nbcou*(nbcol+1)* 3 (noeuds dans l'épaisseur d'une couche) * 6 (nombre d''inconnues nodales) *
+C  nteta 
+C Soit au total pour les déplacements aux noeuds du maillage dsdm: nteta*18*nbcou*(nbcol+1) = dncat    
+C -> decalage associÈ au piquet de temps:                          (nupict-1) * dncat
+C Decalage supplÈmentaire associÈ par couches dÈjà balayÈes:        nteta*18*(nbcol+1) =dncac
+C Pour le numéro de couche nucou -->                               (nucou-1)*dncac    
+C Decalage supplÈmentaire associÈ  par colonne :                    18 * nteta = dncol
+C Pour le numéro de colonne nucol -->                               (nucol-1)*dncol   
+c DECALAGE POUR LE TYPE DE DEPLACEMENT (u,v,w) par déplacement  :    dncor = 2*nteta
+c   (CAR IL Y A DEUX DéPLACEMENT VALEUR ET DERIVEE ) à CHAQUE NOEUD
+C Pour la coordonnée considérée                                  :   (coor-1)*dncor
+C Decalage en teta :                                             :   (nutet-1)
+C soit la position DEBUT(picet, nucou, nucol, nuteta):
+C DEBUT= Picet*dncat+nucou*dncac+nucol*dncol+coor*dncor
+C      DNCOL= 18*NTETA
+      DNCOL= 6*NTETA
+      DNCAC= (NBCOL+1)*DNCOL
+C      DNCAT= NBCOU*DNCAC
+      DNCAT= 3*NBCOU*DNCAC      
+      DNCOR= 2*NTETA
+C
+c DANS DM (VALDEP) ON EST CENSE AVOIR TOuT LES DEPLACEMENTS DES NOEUDS DE L'ELEMENT ET DE LA COMPOSANTE CONSIDEREE
+C ON CALCULE TOUT LES DEPLACEMENTS DES NOEUDS DU MAILLAGE ASSOCIE AUX POINTS DE GAUSS DE CET ELEMENT
+c IL NE CORRESPONDENT PAS A L'ORDRE DE RANGEMENT CORRECT POUR LA VISU DES DEFORMEES AU MAILLAGE POINT DE GAUSS
+C IL FAUT DONC CALCULER POUR LES REPLACER DANS LE TABLEAU VDREGT:
+C   tout les terme de décalage correspondant au tableau point de Gauss commence par DG
+C par picet de temps on a pour ce maillage un nombre de valeurs de déplacement :
+C NTETA*3*(YINTEG+1)(XINTEG*NBCOL+1)* NBCOU = DGCATG
+C avec une contribution de chaque couche:                                       
+C DGCACG = NTETA*3*(YINTEG+1)(XINTEG*NBCOL+1)  
+C et un décalage correspondant par ligne de noeud DGCALG :
+C DGCALG= NTETA*3*(XINTEG*NBCOL+1) 
+C et un décalage correspondant par colonne et position en X                      
+C NTETA*3*((NUCOL-1)*XINTEG+NUX-1) 
+C décalage dans la longueur d'un élément en X    
+C  DGDLXG= DECORG*XINTEG
+C decalage par coordonnee 
+C (COOR-1)*3*NTETA= (COOR-1)*DGCORG
+C
+C Remarque tous les indices commençant à 0 -> la vealeur correspondant vaut -1
+c AU BILAN LE DLAGE EN PARTANT DE 1 A AJOUTER POUR LE POSITIONNEMENT DU DDL DANS LE MAILLAGE POINT DE GAUSS 
+C DEPEND (NTETA, COOR, NUX,NUCOU, NUY, NUCOL) ET EST CENSE VALOIR
+c     POSTG=    NUPICET* DGCATG + NUCOU* DGCACG + NUY*DGCALG
+C          +     NUCOL*DGDLXG +NUX*DGCORG
+C          +    COOR*DGCORG
+C          +    NUTETA  
+C 
+      DGCORG = 3*NTETA
+C NOMBRE DE DDL INDEPENDANT PAR COLONNE (DANS UN ELEMENT sans la colonne de debut de l'element suivant C C   sur la longueur EN X)     
+      DGDLXG= 3*NTETA*XINTEG
+c NOMBRE DE DDL PAR LIGNE DU MAILLAGE POINT DE GAUSS
+      DGCALG=  3*NTETA*(NBCOL*XINTEG+1)
+c NOMBRE DE DDL PAR COUCHE DU MAILLAGE POINT DE GAUSS
+      DGCACG= 3*NTETA*(YINTEG+1)*(NBCOL*XINTEG+1)      
+C NOMBRE DE DDL DANS LE MAILLAGE POINT DE GAUSS                        
+      DGCATG= 3*NTETA*NBCOU*(YINTEG+1)*(NBCOL*XINTEG+1)      
+C première ligne derrière les do indice de placement  aux noeuds de point de Gauss
+C deuxième ligne derrière les do indice de début  du ddl des valeurs réelles dans VDRENT
+C      DEBUT= Picet*dncat+nucou*dncat+nucol*dncol+coor*dncor
+C
+C pour test
+C
+D      CALL GSPOUE( LONDEG, ADPSG)
+D      CALL GSPOUE (LONDEG, ADPSGT)
+D      INCRE = ADPSG
+D      LONTES= NPICET*NBCOU*NBCOL*3*NTETA*12
+D      CALL GSPOUD(LONTES, ADTES)
+D      INCTES=ADTES-1
+      DO I=0, NPICET-1   
+C
+          DO L= 0, NBCOU-1
+C     
+          DO K = 0 , NBCOL-1
+C       
+          NBX = XINTEG-1
+          IF (K .EQ. (NBCOL-1)) NBX=XINTEG 
+C            
+               DO COOR = 0, 2
+C   
+                 DO J = 1, NTETA
+C                  
+                   DEBUT =I*DNCAT+K*DNCOL+L*DNCAC+COOR*DNCOR+J  
+C		         
+C - DEBUT DU TABLEAU DES VALEURS AUX NOEUDS
+C   DEBUT U v OU W du noeud 1
+C   DEBUR POUR LA DERIVEE DU DEPLACEMENT du noeud BAS DROITE DE L'ELEMENT TRAITE (NUMEROTATION COUCHE)           
+                     DEBUR = DEBUT+NTETA          
+C
+                     DM (VALDEP    )= VDRENT(DEBUT)
+                     DM (VALDEP+1  )= VDRENT(DEBUT+M(DECALE+1))
+                     DM (VALDEP+2  )= VDRENT(DEBUT+M(DECALE+2))
+                     DM (VALDEP+3  )= VDRENT(DEBUT+M(DECALE+3))                       
+                     DM (VALDEP+4  )= VDRENT(DEBUT+M(DECALE+4))
+                     DM (VALDEP+5  )= VDRENT(DEBUT+M(DECALE+5))        
+                     DM (VALDEP+6  )= VDRENT(DEBUR)
+                     DM (VALDEP+7  )= VDRENT(DEBUR+M(DECALE+1))
+                     DM (VALDEP+8  )= VDRENT(DEBUR+M(DECALE+2))
+                     DM (VALDEP+9  )= VDRENT(DEBUR+M(DECALE+3))                       
+                     DM (VALDEP+10 )= VDRENT(DEBUR+M(DECALE+4))
+                     DM (VALDEP+11 )= VDRENT(DEBUR+M(DECALE+5))  
+c
+D                    DM(INCTES)= DM (VALDEP    )
+D		     INCTES =INCTES+1
+D                    DM(INCTES)=  DM (VALDEP+1  )
+D		     INCTES =INCTES+1		     
+D                    DM(INCTES)= DM (VALDEP+2  )
+D		     INCTES =INCTES+1		     
+D                    DM(INCTES)=  DM (VALDEP+3  )
+D		     INCTES =INCTES+1		                        
+D                    DM(INCTES)= DM (VALDEP+4  )
+D		     INCTES =INCTES+1		     
+D                    DM(INCTES)=  DM (VALDEP+5  )
+D		     INCTES =INCTES+1		             
+D                    DM(INCTES)= DM (VALDEP+6  )
+D		     INCTES =INCTES+1		     
+D                    DM(INCTES)=  DM (VALDEP+7  )
+D		     INCTES =INCTES+1		     
+D                    DM(INCTES)=  DM (VALDEP+8  )
+D		     INCTES =INCTES+1		     
+D                    DM(INCTES)=   DM (VALDEP+9  )
+D		     INCTES =INCTES+1		                          
+D                    DM(INCTES)=    DM (VALDEP+10 )
+D		     INCTES =INCTES+1		     
+D                    DM(INCTES)=   DM (VALDEP+11 )
+D		     INCTES =INCTES+1		                             		           
+C
+                    FNPG =1 
+C
+                 DO NUY = 0 , YINTEG             
+C 
+                   DO NUX = 0, NBX 
+                    POSTG = I*DGCATG+L*DGCACG+ NUX*DGCORG+K*DGDLXG 
+     &                      +COOR*NTETA+J+NUY*DGCALG
+D                   CALL IMPET('POSTG', POSTG)
+D                   M(INCRE)= POSTG
+D                   INCRE =INCRE+1     
+C      
+                    DO DEP = 0, 11
+                              VDREGT(POSTG) = VDREGT(POSTG)
+     &                        +DM(VALDEP+DEP)*TDFBNG(FNPG)
+                              FNPG       = FNPG+1   
+                    END DO
+C
+D                   CALL IMPDT('VDREGT(POSTG)', VDREGT(POSTG))	    
+c         
+                   END DO    
+C  
+                  END DO
+C FIN BOUCLE EN TETA  
+                END DO
+C FIN BOUCLE EN COOR  
+               END DO
+C FIN BOUCLE EN COLONNE                 
+            END DO
+C FIN BOUCLE EN COUCHE      
+          END DO 
+C FIN BOUCLE EN TEMPS
+      END DO    
+C
+D      CALL IMPET('INCRE-ADPSG', INCRE-ADPSG)
+D      CALL IMPET('LONDEG', LONDEG)
+C 
+D      NOMFI1 = 'deplacement_lus'
+D      CALL NUNFOU(IUNIC)
+D      CALL CREFIC (2, NOMDIR, NOMFI1, 15, 'F', LONTES, IUNIC)
+c       CALL TEST_FORMAT (LONTAB, TAB)
+D      WRITE (IUNIC, FMT=16, ERR=99000, IOSTAT=STATUS)
+D    &      (DM(ADTES-1+I), I=1, LONTES)
+D16    FORMAT(E12.5)
+C 
+C      CALL ECFICD (IUNIC, DM(AGRXYT), AGRXYT, LONDEG)      
+D      CALL FERFIC (2, IUNIC, IDPROG)     
+
+CD      CALL TRITEN(LONDEG, M(ADPSG) , M(ADPSGT))
+CD     CALL IMPTET('TABLEAU TRIE', LONDEG, M(ADPSGT))      
+C***********************************************************************
+      CALL SOPOUB(AM2LC,ADM2LC)
+D     CALL RETOUD(IDPROG)
+      RETURN
+C 
+99000 CONTINUE
+      CALL IMPCT ('NOM DE ROUTINE ', IDPROG)
+      CALL IMPET ('NUMERO D''UNITE', IUNIC)
+      CALL IMPET ('STATUS ', STATUS)
+      CALL ERROR_$PRINT (STATUS)
+      WRITE (6, 99100) IUNIT, STATUS
+99100 FORMAT (/,'PROBLEME ECRITURE SUR UNITE : ', I10,/,
+     &         ' STATUS : ', I10,/)
+C 
+      CALL ERREUD (0,' BOFFFFFFFF ???')
+      
+      
+      END                                                               
+C 
+                                                                   

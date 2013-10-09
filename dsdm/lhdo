@@ -1,0 +1,446 @@
+**
+*INITIALISATION-INTERPRETEUR
+= tild indique le nom de la directorie au dessus de delami
+= tild1 indique le nom de la directorie de sauvgarde et de reprise
+= ficresu est le nom du fichier d'impression
+= Test de la recursivite
+= Calcul de statistiques et chronometrage
++tild                    C F DEFAUT='/usrtmp/dsdm/delami'
++tild1                   C F DEFAUT='/usrtmp/dsdm/delami/sauvgarde'
++NUFICH                  I F DEFAUT=4
++FICRESU                 C F DEFAUT='bilan'
++RECURSIVITE             L F DEFAUT=.TRUE.
++STATISTIQUE-CHRONO      L F DEFAUT=.FALSE.
+**
+*SYMETRIES
+= SYMX indique si la solution est symetrique par rapport a x
+= SYMY indique si la solution est symetrique par rapport a y
+= SYMO indique si la solution est symetrique par rapport a l'origine
+= FORS on force la symetrie ( en imposant la symetrie des efforts ( meme residuels))
++SYMX  L F DEFAUT=.FALSE.
++SYMY  L F DEFAUT=.FALSE.
++SYMO  L F DEFAUT=.FALSE.
++FORS  L F DEFAUT=.FALSE.
+**
+*STRATEGIE-CALCUL
+= LETAPP  indique si on effectue une etape preliminaire
+= UPERIO indique si une seule periode en temps est impose
+= UNINST indique si on veut decouper uniquement a l'instabilite
+= NBCINM nombre d'iteration maxi pour le probleme cinematique
+= NBSTAM nombre d'iteration maxi pour le probleme statique
+= NUM  :num= 1 couche , 2 colonne , -1 determination automatique    
+= VALPRO indique si on traite l'etape globale par valeurs propres
+= NBVALP indique le nombre de fonctions du temps dans le cas VALPRO = .T.
++LETAPP      L F DEFAUT=.FALSE.
++UPERIO      L F DEFAUT=.FALSE.
++UNINST      L F DEFAUT=.TRUE.
++NBCINM      I F DEFAUT= 1   SUP=10  INF=0
++NBSTAM      I F DEFAUT= 0   SUP=10  INF=0                            
++NUM         I F DEFAUT=-1   SUP=2   INF=-1                            
++VALPRO      L F DEFAUT=.FALSE.
++NBVALP      I F DEFAUT=1
+**
+*DETAIL 
+= nombre de champs admissibles a zero +1 maxi crees => ( mini =2 )
+= nombre de champs admissibles maxi crees( 1+nbiteratio nglobale)
+=SYM indique si la solution est symetrique par rapport au plan moyen
+=NOMBRE-DE-COUCHES : total meme en cas de symetrie
+=NOMBRE-DE-COLONNES : est le nombre d'element fini dans une couche
+=NTETA  : est le nombre NTETA d'angle qui vaut :
+=          2x(le  nombre de termes de la serie de fourier )
+=NB-PAS-TEMPS : nb-pas-temps pour le decoupage en temps de la duree 
+=XINTEG: CHOIX DU DEGRES D'INTEGRATION EN R(XINTEG)
+=YINTEG: CHOIX DU DEGRES D'INTEGRATION EN Z(YINTEG)
++CHAMAX  I F DEFAUT=2   SUP=500  INF=1                            
++CHARAX  I F DEFAUT=16  SUP=500 INF=1        
++SYM     L F DEFAUT=.FALSE.
++NOMBRE-DE-COUCHES I F DEFAUT=1 SUP=130 INF=1
++NOMBRE-DE-COLONNES I F DEFAUT=1 SUP=20 INF=1
++NTETA I F DEFAUT=32  SUP=128 INF=4
++NB-PAS-TEMPS I F DEFAUT=50  SUP=1000 INF=1
++XINTEG I F DEFAUT=4 SUP=4 INF=3
++YINTEG I F DEFAUT=4 SUP=3 INF=2
+**
+**
+*TETA-DESSIN
++NTERME I F   DEFAUT=32
++NPOINT I F   DEFAUT=256
++LNOMDI I F   DEFAUT=9
++LNOMFI I F   DEFAUT=6
++LNOMDE I F   DEFAUT=6
++NOMDIR                  C F DEFAUT='resulta16'
++NOMFIC                  C F DEFAUT='t11111'
++FICDES                  C F DEFAUT='d11111'
+**
+*UTIL 
++STANDARD                L F DEFAUT=.TRUE.
+=Pour avoir une utilisation standard 
+=Pour programmeur  ( .FALSE. )
+** 
+**
+**  POUR UTILISER UTIRES
+*PROFIL
++NDDL I F DEFAUT=1
+**
+*SECOND
+**
+*MATRIC
+** -------------------------------------------------------------------
+**
+*WHERE
+= impression de la pile du wlkbcd
+**
+*MATCON
++RTEST R F   DEFAUT=0.
++ATEST R F   DEFAUT=0.
++BTEST R F   DEFAUT=0.
+**
+*BIDON
+=pour initialiser la trace dans le premier module
+=appele(eventuellement)
+*DIRECT
+=pour ouvrir LEC-DEPLA en acces direct
+**
+*SEQUENTIEL
+=pour ouvrir LEC-DEPLA en acces sequentiel
+**
+*DONGEO
+=POUR APPELLER DONGEO
+**
+*BLOCAGE
+=POUR RENTRER LES DEPLACEMENTS IMPOSES NULS
+**
+*DON-MAT
+=POUR RENTRER LES DONNEES MATRICIELLES
+**
+*DON-VEC
+=POUR RENTRER LES DONNEES VECTORIELLES
+=NDSM EST LE NOMBRE DE VECTEURS
++NDSM I F DEFAUT=1  SUP=5 INF=1
+**
+*DON-PRO
+=POUR RENTRER LES DONNEES DE PROFIL
+**
+*DONMAT
+=POUR APPELLER DONMAT
+*TEST
+=Pour tester une nouvelle routine
++TEST    L F DEFAUT=.FALSE.
+**
+*GEOMETRIE
+=NTDSFG  : est le nombre de termes de la serie de fourier que l'on
+=          estime necessaire a une bonne representation de la solution;
+=          le nombre NTETA d'angles vaut 2 NTDSFG
+**
++RAYON   R  F  DEFAUT=5.
++RAYEXT  R  F  DEFAUT=10.
+**
+*DONNEES-PAR-FICHIER
+=DONFIC  : Logique indiquant si la donnees des deplacement ce fait par fichier
+=DONHER  : Logique indiquant si il y a des donnees de type pression de hertz
+= par fichier
+=TRACT : Logique indiquant si les donnees en deplacement
+= sont de type Traction (.T.) ou flexion (.F.)
+=POLAR : Logique indiquant si les deplacements sont donnes
+= en coordonees polaires (POL=.T.) ou cartesiennes
+=NBELZC : nombre d'EF de la zone de contact si DONHER
++DONFIC L F DEFAUT=.FALSE.
++DONHER L F DEFAUT=.FALSE.
++TRACT  L F DEFAUT=.TRUE.
++VOLUM  L F DEFAUT=.FALSE.
++POLAR  L F DEFAUT=.TRUE.
++NBELZC I F DEFAUT= 1  SUP=100 INF=0  
+**
+*NOM-FICHIER-DONNEE
+=FICDON  : nom du fichier 
++FICDON C F DEFAUT= 'deplac'
+**
+*LISTE-DES-EPAISSEURS
+**
+*VERIFICATION
+=pour eventuellement verifier que les rentrees de donnees
+=sont correctes
+**
+*COMPORTEMENT
+=LENDCO      On tient compte de l'endommagement des couches
+=LRUPCO      On tient compte de la rupture des fibres
+=LPLACO      On tient compte de la plasticite des couches
+=LENDIN      On tient compte de l'endommagement des interfaces
+=LPLAIN      On tient compte de la plasticite des interfaces
+=LMOSIG      modele en contrainte                  ( en cours)
+=LRETAR      modele avec retard 
+=LRETIN      modele avec retard apres instabilite  ( en cours)
+=LPLAEF      deformation plastique effective       ( en cours)
+=LPLEFF      deformation plastique finie           ( en cours)
+**
++LENDCO      L F DEFAUT=.TRUE.
++LRUPCO      L F DEFAUT=.TRUE.
++LPLACO      L F DEFAUT=.TRUE.
++LENDIN      L F DEFAUT=.TRUE.
++LPLAIN      L F DEFAUT=.TRUE.
++LMOSIG      L F DEFAUT=.FALSE.
++LRETAR      L F DEFAUT=.TRUE.
++LRETIN      L F DEFAUT=.FALSE.
++LPLAEF      L F DEFAUT=.FALSE.
++LPLEFF      L F DEFAUT=.FALSE.
+**
+*HOOKOR
+=pour rentrer l'operateur de Hooke d'une COUCHE 
+=( defaut = T300 ) => K11 T=100.
++K11 R F   DEFAUT=100.
++K12 R F   DEFAUT=50.
++K22 R F   DEFAUT=100.
++K66 R F   DEFAUT=50.
++A1  R F   DEFAUT=50.
++A2  R F   DEFAUT=50.
++B1  R F   DEFAUT=50.
++B2  R F   DEFAUT=50.
++C   R F   DEFAUT=100.
+**
+*CALINE
+=pour rentrer le comportement d'une interface 
+= Ki en MPA/mm  ( defaut=> T300 ) 
+= K1=  80000.| K2 =  80000.|  K3 = 100000.|
++K1 R F   DEFAUT=3000000.
++K2 R F   DEFAUT=3000000.
++K3 R F   DEFAUT=5000000.
+**
+*RIGIDITE
+=pour rentrer le comportement d'une couche 
+= Eij , Gij en MPA   Defaut = T300 =>
+= E11 = 148000.| V12  =.33 | E22 = 11500.   |
+= G12 = 5800.  | V12  =.33 | V13 = .33      |
+= G13 = 5800.  | G23  = 5800. | E33 = 20000.|
+**
++E11  R F   DEFAUT=148000.
++V12  R F   DEFAUT=.33
++E22  R F   DEFAUT=11500.
++G12  R F   DEFAUT=5800.
++V13  R F   DEFAUT=.33
++V23  R F   DEFAUT=.33
++G13  R F   DEFAUT=5800.
++G23  R F   DEFAUT=5800.
++E33  R F   DEFAUT=20000.
+**
+*RIGINT
+=pour rentrer le comportement d'une interface 
+= Ei en MPA/mm ( defaut=> T300 )
+= E1=  80000.| E2 =  80000.|  E3 = 100000.|
++E1 R F   DEFAUT= 3000000.
++E2 R F   DEFAUT= 3000000.
++E3 R F   DEFAUT= 5000000.
+**
+*PENALISATION
+=pour penaliser la liaison a l'interface
++PENAL   L F DEFAUT=.FALSE. 
++P1 R F   DEFAUT=1.E+99
++P2 R F   DEFAUT=1.E+99
++P3 R F   DEFAUT=1.E+99
+**
+*ANGLE
++TETA  R  F  DEFAUT=0.
+**
+*INTEGRATION
+=CHOIX DU DEGRES D'INTEGRATION EN R(XINTEG)
+=CHOIX DU DEGRES D'INTEGRATION EN Z(YINTEG)
++XINTEG I F DEFAUT=4 SUP=4 INF=3
++YINTEG I F DEFAUT=4 SUP=3 INF=2
+*EXECUTION
+=pour executer eventuellement une fois les rentrees
+=de donnees effectuees.L'execution ayant lieu si les
+=arguments ex....sont vrais.
++EXGEOM   L F DEFAUT=.FALSE.
++EXINTE   L F DEFAUT=.FALSE.
+**
+*ZONE-DELAMI
+= DINDEL si on veut une zone predelaminee
+= TYPDEV le type de description : 0 en serie de Fourier
+=                                 1 angle puis rayon, d=0 ou 1
+=                                 2 angle puis rayon, d=0 ou 1 ou f(rayon)
+= NUPATE est le NUPATEieme pas de temps ou le predelaminage est impose
+= ATTENTION : dans les visus, le pas de temps t=0 est numerote 1 !!
+= pas de predelaminage ==> nupate= -1
++DINDEL  L F DEFAUT=.FALSE.
++TYPDEV  I F DEFAUT= 0 SUP=2 INF =0
++NUPATE  I F DEFAUT= 0 INF=-1
+**
+*DONEFF
+= pour rentrer dans DONEFF
+*DONEFD
+= pour rentrer dans DONEFD
+= NBZOTO : nombre de zones ou on impose des conditions aux limites
++NBZOTO   I F DEFAUT=1  INF=0
+**
+*DONTEM
+= Duree pour la duree du chargement
+= Pour le nombre de fonction du temps permettant de definir le chargement 
+= (Deplacements imposes - Efforts imposes) exemple :
+= Fd = f1(t)G1(M)+f2(t)G2(M)                2 fonctions
+= Ud = h1(t)I1(M)+h2(t)i2(M)+h3(t)i3(M)     3 fonctions  => NBFODO = 5
+=
+= defaut : DUREE = 1., NB-PAS-TEMPS = 50, NBFODO = 1
+** 
++DUREE  R F DEFAUT=1.
++NBFODO   I F DEFAUT=1 SUP=10 INF=1
+**
+*CALTEM
+=si le decoupage en temps est impose : =>impose : 1 
+=                              sinon : =>impose : 0
+=nb zone de decoupage en temps
++IMPOSE I F DEFAUT=1  SUP=1 INF=0
++NBZONT I F DEFAUT=1  SUP=30 INF=1
+**
+*REP_TEMPS
+=Pour definir de nouvelle donnees en temps en gardant la meme  
+=solution orthotrope ( une seule fonction du temps)
+=duree pour la duree du chargement
+=nb-pas-temps pour le decoupage en temps de la duree
+=C1 pour la 1ere constante de definition de l'histoire du chargement
+=C2 pour la 2eme constante de definition de l'histoire du chargement
++DUREE  R F DEFAUT=1.
++NB-PAS-TEMPS I F DEFAUT=1  SUP=1000 INF=1
++C1  R F DEFAUT=1.
++C2  R F DEFAUT=0.
+**
+*VISUALISATION
+**
+*ADMISS
+** 
+*CALISO
+**
+*EFFORTS
+**
+*DEPREE
+**
+*CARAC_REPRISE
+= REPMAT pour reprendre les matrices dans matricesm
+= REPGLO  reprise a l'etape globale NBETDE avant l'etape locale 
+= REPLOC  reprise a l'etape globale NBETDE apres l'etape locale 
+= c'est a dire avant l'etape globale NBETDE+1
+= NBETDE le numero de l'etape globale                      
+= tild2 est le chemin caracterisant le fichier de reprise
++REPMAT  L F DEFAUT= .FALSE.
++REPGLO  L F DEFAUT= .FALSE.
++REPLOC  L F DEFAUT= .FALSE.
++NBETDE I F  DEFAUT=0  SUP=99 INF=0
++tild2  C F  DEFAUT='/usrtmp/dsdm/delami/sauvgarde/sau_etglo_000'
+**
+*TRAIT-CHAMP
+= NETCHA  Pour nettoyer les champs admissibles "negligeables"
+= NETINS  Pour lorsque l'on recalcule la solution admissible par etloca
+=         mettre a zero,apres l'instabilite, les fonctions du temps correspondant 
+=         aux accroissements admissibles a zero.
+= AGDCHA  Pour augmenter le nombre de fonctions temps-espace
+= BIGNET  Pour un grand nettoyage
+= CHARAX devient NOUCHR
+= CHAMAX devient NOUCHA
+**
++NETCHA L F DEFAUT=.FALSE.
++NETINS L F DEFAUT=.FALSE.
++AGDCHA L F DEFAUT=.FALSE.
++BIGNET L F DEFAUT=.FALSE.
++NOUCHR I F DEFAUT=0  INF=1
++NOUCHA I F DEFAUT=0  INF=1
+**
+*POINT_REPRISE
+= Pour tout reprendre 
+**
+*ECRIT_REPRISE
+= Pour sauvegarder
+= a l'etape globale NBETDE avant l'etape locale ( type = 0 )
+= a l'etape globale NBETDE apres l'etape locale ( type = 1 )
++TYPE   I F  DEFAUT=0  SUP=1  INF=0
+*POINT-SAUVE
+=  Pour sauvegarder ou non
++SAUVE   L F DEFAUT= .FALSE.
+**                   
+*ETAPE-LOCALE
+**
+*SAUVE-HIST
+**
+*DESSIN
+=  Pour indiquer:
+=   si on lance en batch
+=   si les  dessins doivent etre stockes sur un fichier benson
+=   si c'est un terminal noir et blanc
+=   si on veut tracer les differences entre chapeaux et admissibles
+=   si on veut tracer les fonctions simples de controle ( appel a DESFON )
+**
++BATCH    L F DEFAUT= .FALSE.
++BENSON   L F DEFAUT= .FALSE.
++BLACKW   L F DEFAUT= .FALSE.
++LDIFCO   L F DEFAUT= .FALSE.
++LDFONC   L F DEFAUT= .FALSE.
+**=  Pour indiquer si c'est le 1er dessin stocke sur le fichier benson 
+**=depuis la derniere sortie des dessins de l'etape locale  a l'ecran.
+**+DESSI1   L F DEFAUT= .FALSE.
+**
+*PAUSE
+**
+*ETAPE-GLOBALE
+**
+*CPLAST
+=pour rentrer les donnees de plasticite de la monocouche
++R0       R F   DEFAUT=   30.
++BETA     R F   DEFAUT=  820.
++ALPHA    R F   DEFAUT= .5
++A2       R F   DEFAUT=  .34
+**
+*CENDOM
+=( defaut : T300 ) les srij sont les criteres elastiques aerospatiale 
+=pour choisir en option : endo '3D' ou '2D'
++B         R F   DEFAUT=   .337
++K         R F   DEFAUT=   0.1
++Y0        R F   DEFAUT=   .3
++YC        R F   DEFAUT=   10.
++YS        R F   DEFAUT=   1000.
++N         R F   DEFAUT=   1.
++PB        R F   DEFAUT=   0.0
++PK        R F   DEFAUT=   2.
++PY0       R F   DEFAUT=   0.0
++PYC       R F   DEFAUT=   0.4
++PYS       R F   DEFAUT=   1000.
++PN        R F   DEFAUT=   1.
++SR22T     R F   DEFAUT=   55.
++SR22C     R F   DEFAUT=  140.
++SR12      R F   DEFAUT=   95.
++SR13      R F   DEFAUT=   95.
++SR23      R F   DEFAUT=   50.
++D2D3      R F   DEFAUT=   2.
+**
+*LIMSIG
+=    EPTLIM et EPCLIM limite en deformation en traction  
+=    et compression  dans la direction des fibres , puis 
+=    donnee de GAM caracterisant le module secant en 
+=    compression  :
+=                    E11= E110*(1+gam*inf(EPS11,0) ) ' )
+=( defaut : T300 )  
++EPTLIM   R F   DEFAUT= 0.01 
++EPCLIM   R F   DEFAUT= -0.011 
++GAM      R F   DEFAUT= 0.00015 
+**         
+*IPLAST
+=pour rentrer les donnees de plasticite de l'interface
++R0       R F   DEFAUT=   20.
++BETA     R F   DEFAUT=  580.
++ALPHA    R F   DEFAUT= .429
++A1       R F   DEFAUT=  .34
++A2       R F   DEFAUT=  .34
+**
+*IENDOM
+=pour rentrer les donnees d'endommagement de l'interface
++GAM1      R F   DEFAUT=   0.6
++GAM2      R F   DEFAUT=   0.6
++A         R F   DEFAUT=   0.0
++K         R F   DEFAUT=   0.01
++Y0        R F   DEFAUT=   .0
++YC        R F   DEFAUT=   .01
++YR        R F   DEFAUT=   100.0
++ALP       R F   DEFAUT=   1.0
++M         R F   DEFAUT=   0.5
++N         R F   DEFAUT=   1.
++SRI13     R F   DEFAUT=   95.
++SRI23     R F   DEFAUT=   50.
+**
+*SORTIE
+**

@@ -1,0 +1,134 @@
+      CHARACTER*6      CPLAST(6) , IPLAST(2), CRITER(2)
+      CHARACTER*3      CENDOM(3) , ENDOMI(3)
+      CHARACTER*10     ENDDIF(3)
+      CHARACTER*9      BORD(4)
+      CHARACTER*3      CONTRA(6), DEFORM(6)
+      CHARACTER*4      DCONTR(6)
+      CHARACTER*4      DDEFOR(6)
+      CHARACTER*1      DEPLA(3)
+C 
+      BORD(1)    = 'inferieur'
+      BORD(2)    = 'interieur'
+      BORD(3)    = 'superieur'
+      BORD(4)    = 'exterieur'
+C 
+      DEPLA(1)   = 'u'
+      DEPLA(2)   = 'v'
+      DEPLA(3)   = 'w'
+C 
+      IF (VISORT) THEN
+C 
+         CONTRA(1)  = 'C11'
+         CONTRA(2)  = 'C22'
+         CONTRA(3)  = 'C12'
+         CONTRA(4)  = 'C23'
+         CONTRA(5)  = 'C13'
+         CONTRA(6)  = 'C33'
+C 
+         DEFORM(1)  = 'E11'
+         DEFORM(2)  = 'E22'
+         DEFORM(3)  = 'E12'
+         DEFORM(4)  = 'E23'
+         DEFORM(5)  = 'E13'
+         DEFORM(6)  = 'E33'
+C 
+         DCONTR(1)  = 'DC11'
+         DCONTR(2)  = 'DC22'
+         DCONTR(3)  = 'DC12'
+         DCONTR(4)  = 'DC23'
+         DCONTR(5)  = 'DC13'
+         DCONTR(6)  = 'DC33'
+C 
+         DDEFOR(1)  = 'DE11'
+         DDEFOR(2)  = 'DE22'
+         DDEFOR(3)  = 'DE12'
+         DDEFOR(4)  = 'DE23'
+         DDEFOR(5)  = 'DE13'
+         DDEFOR(6)  = 'DE33'
+C 
+      ELSE IF (VISUXY) THEN
+C 
+         CONTRA(1)  = 'Cxx'
+         CONTRA(2)  = 'Cyy'
+         CONTRA(3)  = 'Cxy'
+         CONTRA(4)  = 'Cyz'
+         CONTRA(5)  = 'Cxz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Exx'
+         DEFORM(2)  = 'Eyy'
+         DEFORM(3)  = 'Exy'
+         DEFORM(4)  = 'Eyz'
+         DEFORM(5)  = 'Exz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCxx'
+         DCONTR(2)  = 'DCyy'
+         DCONTR(3)  = 'DCxy'
+         DCONTR(4)  = 'DCyz'
+         DCONTR(5)  = 'DCxz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DExx'
+         DDEFOR(2)  = 'DEyy'
+         DDEFOR(3)  = 'DExy'
+         DDEFOR(4)  = 'DEyz'
+         DDEFOR(5)  = 'DExz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ELSE
+C 
+         CONTRA(1)  = 'Crr'
+         CONTRA(2)  = 'C00'
+         CONTRA(3)  = 'Cr0'
+         CONTRA(4)  = 'C0z'
+         CONTRA(5)  = 'Crz'
+         CONTRA(6)  = 'Czz'
+C 
+         DEFORM(1)  = 'Err'
+         DEFORM(2)  = 'E00'
+         DEFORM(3)  = 'Er0'
+         DEFORM(4)  = 'E0z'
+         DEFORM(5)  = 'Erz'
+         DEFORM(6)  = 'Ezz'
+C 
+         DCONTR(1)  = 'DCrr'
+         DCONTR(2)  = 'DC00'
+         DCONTR(3)  = 'DCr0'
+         DCONTR(4)  = 'DC0z'
+         DCONTR(5)  = 'DCrz'
+         DCONTR(6)  = 'DCzz'
+C 
+         DDEFOR(1)  = 'DErr'
+         DDEFOR(2)  = 'DE00'
+         DDEFOR(3)  = 'DEr0'
+         DDEFOR(4)  = 'DE0z'
+         DDEFOR(5)  = 'DErz'
+         DDEFOR(6)  = 'DEzz'
+C 
+      ENDIF
+C 
+      CPLAST(1)  = 'epsp11' 
+      CPLAST(2)  = 'epsp22' 
+      CPLAST(3)  = 'epsp12' 
+      CPLAST(4)  = 'epsp23' 
+      CPLAST(5)  = 'epsp13' 
+      CPLAST(6)  = 'epsp33' 
+C 
+      CENDOM(1)   = 'dfi'
+      CENDOM(2)   = 'dps' 
+      CENDOM(3)   = 'dpt'
+C 
+      IPLAST(1)  = 'SAUTP1' 
+      IPLAST(2)  = 'SAUTP2' 
+C 
+      ENDOMI(1)   = 'di1' 
+      ENDOMI(2)   = 'di2'
+      ENDOMI(3)   = 'di3'
+C 
+      ENDDIF(1)   = 'di1-di1ini'
+      ENDDIF(1)   = 'di2-di2ini'
+      ENDDIF(1)   = 'di3-di3ini'
+c -
+      CRITER(1)  = 'CRIT-S'
+      CRITER(2)  = 'CRIT-N'

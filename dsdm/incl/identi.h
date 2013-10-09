@@ -1,0 +1,13 @@
+      CHARACTER*6      CPLAST(6) , IPLAST(2), CRITER(2)
+      CHARACTER*3      CENDOM(3) , ENDOMI(3)
+      CHARACTER*10     ENDDIF(3)
+      CHARACTER*9      BORD(4)
+      CHARACTER*3      CONTRA(6), DEFORM(6)
+      CHARACTER*4      DCONTR(6)
+      CHARACTER*4      DDEFOR(6)
+      CHARACTER*1      DEPLA(3) 
+C 
+      COMMON / NOMFICH / CPLAST, IPLAST, CRITER, CENDOM,
+     &                   ENDOMI, ENDDIF, BORD, CONTRA,
+     &                   DEFORM, DCONTR, DDEFOR, DEPLA
+
